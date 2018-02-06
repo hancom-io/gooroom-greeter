@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+export DEB_LDFLAGS_MAINT_APPEND=-Wl,--as-needed -Wl,-O1
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+override_dh_auto_configure:
+	./autogen.sh
+	dh_auto_configure -- --disable-silent-rules --enable-kill-on-sigterm
+
+%:
+	dh $@ --parallel --with autotools-dev

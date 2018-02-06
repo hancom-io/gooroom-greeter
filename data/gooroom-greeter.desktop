@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Gooroom Greeter
+Comment=Gooroom Greeter
+Exec=gooroom-greeter
+Type=Application
