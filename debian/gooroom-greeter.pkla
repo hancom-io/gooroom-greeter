@@ -18,7 +18,7 @@ ResultsAny=no
 [Disable WiFi Sharing]
 Identity=unix-user:lightdm
 Action=org.freedesktop.NetworkManager.wifi.share.protected;org.freedesktop.NetworkManager.wifi.share.open
-ResultActive=no
+ResultActive=yes
 ResultInactive=no
 ResultsAny=no
 
@@ -32,20 +32,20 @@ ResultsAny=no
 [Disable Settings Modifications]
 Identity=unix-user:lightdm
 Action=org.freedesktop.NetworkManager.settings.modify.own
-ResultActive=no
+ResultActive=yes
 ResultInactive=no
 ResultsAny=no
 
 [Disable User Connections]
 Identity=unix-user:lightdm
 Action=org.freedesktop.NetworkManager.use-user-connections
-ResultActive=no
+ResultActive=yes
 ResultInactive=no
 ResultsAny=no
 
 [Enable Controlling of Network Connections]
 Identity=unix-user:lightdm
 Action=org.freedesktop.NetworkManager.network-control
-ResultActive=no
+ResultActive=yes
 ResultInactive=no
 ResultsAny=no

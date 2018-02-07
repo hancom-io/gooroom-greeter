@@ -7,6 +7,8 @@ if [ "$1" = "configure" ]; then
   lightdm-greeter /usr/share/xgreeters/gooroom-greeter.desktop 60
 fi
 
-#DEBHELPER#
+# Login manager requires netdev permission to enable WiFi.
+usermod -G netdev ligthdm
 
+#DEBHELPER#
 exit 0
