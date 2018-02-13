@@ -8,7 +8,7 @@ if [ "$1" = "configure" ]; then
 fi
 
 # Login manager requires netdev permission to enable WiFi.
-usermod -G netdev ligthdm
+usermod -G netdev lightdm
 
 #DEBHELPER#
 exit 0

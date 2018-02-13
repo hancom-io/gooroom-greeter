@@ -10,7 +10,7 @@ Homepage: https://git.gooroom.kr/gooroom-greeter
 
 Package: gooroom-greeter
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, lightdm
 Description: A LightDM greeter that uses the GTK+ toolkit.
  .
  All panel applets are embedded. No external indicators are launched or
