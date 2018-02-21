@@ -505,9 +505,9 @@ network_indicator_service_start (void)
 
     g_strfreev (argv);
 
-	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications true", NULL, NULL, NULL, NULL);
+	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
 
-	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications true", NULL, NULL, NULL, NULL);
+	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
 
     /* Make nm-applet hide items the user does not have permissions to interact with */
     g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
