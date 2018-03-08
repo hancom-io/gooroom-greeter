@@ -41,8 +41,6 @@
 #include "greeterbackground.h"
 #include "gooroom-greeter-ui.h"
 
-#define	COMMAND_MENUITEM_SPACING	6
-
 
 static LightDMGreeter *greeter;
 
@@ -102,7 +100,7 @@ static gchar *default_font_name,
 static const gchar *POWER_WINDOW_DATA_LOOP = "power-window-loop";           /* <GMainLoop*> */
 static const gchar *POWER_WINDOW_DATA_RESPONSE = "power-window-response";   /* <GtkResponseType> */
 
-static const gchar *WINDOW_DATA_POSITION = "window-position"; /* <WindowPosition*> */
+//static const gchar *WINDOW_DATA_POSITION = "window-position"; /* <WindowPosition*> */
 
 /* Handling window position */
 typedef struct
@@ -142,7 +140,7 @@ struct SavedFocusData
 };
 
 /* Some default positions */
-static const WindowPosition WINDOW_POS_CENTER   = {.x = { 50, +1, TRUE,   0}, .y = { 50, +1, TRUE,   0}, .use_size = FALSE};
+//static const WindowPosition WINDOW_POS_CENTER   = {.x = { 50, +1, TRUE,   0}, .y = { 50, +1, TRUE,   0}, .use_size = FALSE};
 
 
 
@@ -152,7 +150,7 @@ gpointer greeter_save_focus(GtkWidget* widget);
 void     power_button_clicked_cb (GtkButton *button, gpointer user_data);
 
 gboolean power_window_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
-gboolean screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data);
+//gboolean screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data);
 
 
 
@@ -206,6 +204,11 @@ on_indicator_item_sensitive_cb (GObject *obj, GParamSpec *pspec, gpointer data)
 static void
 entry_added (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_data)
 {
+    g_return_if_fail (entry != NULL);
+
+    if (g_strcmp0 (entry->name_hint, "nm-applet") != 0)
+        return;
+
     gboolean indicator_item_visible = FALSE;
     gboolean indicator_item_sensitive = FALSE;
 
@@ -299,21 +302,29 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
     gdouble percentage;
     g_object_get (device, "percentage", &percentage, NULL);
 
-    gchar *icon = "gooroom-greeter-battery-full-symbolic";
+    gchar *icon = "battery-full-symbolic";
     if (percentage <= 75.0) {
-        icon = "gooroom-greeter-battery-good-symbolic";
+        icon = "battery-good-symbolic";
     }
 
     if (percentage <= 50.0) {
-        icon = "gooroom-greeter-battery-low-symbolic";
+        icon = "battery-low-symbolic";
     }
 
     if (percentage <= 25.0) {
-        icon = "gooroom-greeter-battery-caution-symbolic";
+        icon = "battery-caution-symbolic";
     }
 
-    gtk_image_set_from_icon_name (battery_image, icon, GTK_ICON_SIZE_BUTTON);
-    gtk_image_set_pixel_size (battery_image, 16);
+    GdkPixbuf *pix = NULL;
+    pix = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
+                                    icon, 22,
+                                    GTK_ICON_LOOKUP_FORCE_SIZE,
+                                    NULL);
+
+    if (pix) {
+        gtk_image_set_from_pixbuf (battery_image, pix);
+        g_object_unref (pix);
+    }
 }
 
 static void
@@ -332,10 +343,11 @@ updevice_added_cb (UpDevice *device)
        g_object_set_data (G_OBJECT (item), "updevice", device);
 
        GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+       gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
        gtk_container_add (GTK_CONTAINER (item), hbox);
        gtk_widget_show (hbox);
    
-       GtkWidget *image = gtk_image_new_from_icon_name ("gooroom-greeter-battery-full-symbolic", GTK_ICON_SIZE_BUTTON);
+       GtkWidget *image = gtk_image_new_from_icon_name ("battery-full-symbolic", GTK_ICON_SIZE_BUTTON);
        gtk_box_pack_start (GTK_BOX (hbox), image, FALSE, FALSE, 0);
        gtk_widget_show (image);
    
@@ -478,8 +490,6 @@ load_module (const gchar *name)
     io = indicator_object_new_from_file (fullpath);
     g_free (fullpath);
 
-//    g_object_set_data_full (G_OBJECT (io), "io-name", g_strdup (name), g_free);
-
     g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_ADDED, G_CALLBACK (entry_added), NULL);
     g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
 
@@ -506,7 +516,6 @@ network_indicator_service_start (void)
     g_strfreev (argv);
 
 	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
-
 	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
 
     /* Make nm-applet hide items the user does not have permissions to interact with */
@@ -772,32 +781,32 @@ get_absolute_position (const DimensionPosition *p, gint screen, gint window)
         return x;
 }
 
-gboolean
-screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data)
-{
-    const WindowPosition *pos = g_object_get_data (G_OBJECT (widget), WINDOW_DATA_POSITION);
-    if (!pos)
-        return FALSE;
-
-    gint screen_width = gtk_widget_get_allocated_width (overlay);
-    gint screen_height = gtk_widget_get_allocated_height (overlay);
-
-    if (pos->use_size)
-    {
-        allocation->width = get_absolute_position (&pos->width, screen_width, 0);
-        allocation->height = get_absolute_position (&pos->height, screen_height, 0);
-    }
-    else
-    {
-        gtk_widget_get_preferred_width (widget, NULL, &allocation->width);
-        gtk_widget_get_preferred_height (widget, NULL, &allocation->height);
-    }
-
-    allocation->x = get_absolute_position (&pos->x, screen_width, allocation->width);
-    allocation->y = get_absolute_position (&pos->y, screen_height, allocation->height);
-
-    return TRUE;
-}
+//gboolean
+//screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data)
+//{
+//    const WindowPosition *pos = g_object_get_data (G_OBJECT (widget), WINDOW_DATA_POSITION);
+//    if (!pos)
+//        return FALSE;
+//
+//    gint screen_width = gtk_widget_get_allocated_width (overlay);
+//    gint screen_height = gtk_widget_get_allocated_height (overlay);
+//
+//    if (pos->use_size)
+//    {
+//        allocation->width = get_absolute_position (&pos->width, screen_width, 0);
+//        allocation->height = get_absolute_position (&pos->height, screen_height, 0);
+//    }
+//    else
+//    {
+//        gtk_widget_get_preferred_width (widget, NULL, &allocation->width);
+//        gtk_widget_get_preferred_height (widget, NULL, &allocation->height);
+//    }
+//
+//    allocation->x = get_absolute_position (&pos->x, screen_width, allocation->width);
+//    allocation->y = get_absolute_position (&pos->y, screen_height, allocation->height);
+//
+//    return TRUE;
+//}
 
 /* Message label */
 static gboolean
@@ -1315,25 +1324,22 @@ main (int argc, char **argv)
 
     config_init ();
 
-#if 0
     g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
 
-    GPid pid = 0;
-    gchar **arr_cmd = NULL;
-    gchar *cmd = "/usr/lib/at-spi2-core/at-spi-bus-launcher --launch-immediately";
-
-    g_shell_parse_argv (cmd, NULL, &arr_cmd, NULL);
-
-    g_spawn_async (NULL, arr_cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &pid, NULL);
-
-    g_strfreev (arr_cmd);
-    arr_cmd = NULL;
-#endif
+//    GPid pid = 0;
+//    gchar **arr_cmd = NULL;
+//    gchar *cmd = "/usr/lib/at-spi2-core/at-spi-bus-launcher --launch-immediately";
+//
+//    g_shell_parse_argv (cmd, NULL, &arr_cmd, NULL);
+//
+//    g_spawn_async (NULL, arr_cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &pid, NULL);
+//
+//    g_strfreev (arr_cmd);
+//    arr_cmd = NULL;
 
     /* init gtk */
     gtk_init (&argc, &argv);
 
-#if 1
     greeter = lightdm_greeter_new ();
     g_signal_connect (greeter, "show-prompt", G_CALLBACK (show_prompt_cb), NULL);
     g_signal_connect (greeter, "show-message", G_CALLBACK (show_message_cb), NULL);
@@ -1343,7 +1349,6 @@ main (int argc, char **argv)
         ret = EXIT_FAILURE;
         goto done;
     }
-#endif
 
     /* Set default cursor */
     gdk_window_set_cursor (gdk_get_default_root_window (), gdk_cursor_new_for_display (gdk_display_get_default (), GDK_LEFT_PTR));
@@ -1543,10 +1548,14 @@ main (int argc, char **argv)
     }
 
     /* Windows positions */
-    value = config_get_string (NULL, CONFIG_KEY_POSITION, NULL);
-    g_object_set_data_full (G_OBJECT (login_window), WINDOW_DATA_POSITION, str_to_position (value, &WINDOW_POS_CENTER), g_free);
-    g_free (value);
+//    value = config_get_string (NULL, CONFIG_KEY_POSITION, NULL);
+//    g_object_set_data_full (G_OBJECT (login_window), WINDOW_DATA_POSITION, str_to_position (value, &WINDOW_POS_CENTER), g_free);
+//    g_free (value);
 
+    gtk_widget_set_halign (login_window, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (login_window, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (power_window, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (power_window, GTK_ALIGN_CENTER);
     gtk_widget_set_valign (panel_box, GTK_ALIGN_END);
 
     gtk_builder_connect_signals (builder, greeter);

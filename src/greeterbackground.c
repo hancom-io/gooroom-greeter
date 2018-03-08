@@ -590,8 +590,8 @@ greeter_background_connect(GreeterBackground* background,
         for(item = priv->accel_groups; item != NULL; item = g_slist_next(item))
             gtk_window_add_accel_group(monitor->window, item->data);
 
-        g_signal_connect(G_OBJECT(monitor->window), "enter-notify-event",
-                         G_CALLBACK(monitor_window_enter_notify_cb), monitor);
+//        g_signal_connect(G_OBJECT(monitor->window), "enter-notify-event",
+//                         G_CALLBACK(monitor_window_enter_notify_cb), monitor);
 
         if(config->user_bg)
             priv->customized_monitors = g_slist_prepend(priv->customized_monitors, monitor);

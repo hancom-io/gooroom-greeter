@@ -73,17 +73,7 @@ config_init(void)
         g_warning("[Configuration] Failed to load state from %s: %s", state_filename, error->message);
     g_clear_error(&error);
 
-
-//    gint i;
     GList* files = NULL;
-
-//    const gchar* const* dirs = g_get_system_data_dirs();
-//    for(i = 0; dirs[i]; ++i)
-//        files = append_directory_content(files, dirs[i]);
-
-//    dirs = g_get_system_config_dirs();
-//    for(i = 0; dirs[i]; ++i)
-//        files = append_directory_content(files, dirs[i]);
 
     gchar *config_path_tmp = g_path_get_dirname(CONFIG_FILE);
     gchar *config_path = g_path_get_dirname(config_path_tmp);
