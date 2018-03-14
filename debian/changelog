@@ -1,3 +1,17 @@
+gooroom-greeter (0.1.1+grm1u1) unstable; urgency=medium
+
+  [ jongkyung.woo ]
+  * [9f73fa1d] Modified some ResultActive settings to yes in gooroom-greeter.pkla
+  * [8965f813] Enabled the notification for network manager
+
+  [ cjheo ]
+  * [6b436c5f] Disabled the notification for network manager and updated some images
+  * [7b6fff00] Not supporting "#cursor" value in lightdm-gtk-greeter.conf and Updating icons
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Wed, 14 Mar 2018 18:46:58 +0900
+
 gooroom-greeter (0.1.0) unstable; urgency=low
 
   * Initial release.
