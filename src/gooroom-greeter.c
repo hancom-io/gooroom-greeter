@@ -150,7 +150,6 @@ gpointer greeter_save_focus(GtkWidget* widget);
 void     power_button_clicked_cb (GtkButton *button, gpointer user_data);
 
 gboolean power_window_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
-//gboolean screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data);
 
 
 
@@ -201,71 +200,93 @@ on_indicator_item_sensitive_cb (GObject *obj, GParamSpec *pspec, gpointer data)
     gtk_widget_set_sensitive (GTK_WIDGET (data), gtk_widget_get_sensitive (GTK_WIDGET (obj)));
 }
 
+static gboolean
+find_app_indicators (const gchar *name)
+{
+    gboolean found = FALSE;
+
+    gchar **app_indicators = config_get_string_list (NULL, "app-indicators", NULL);
+
+    if (app_indicators) {
+        guint i;
+        for (i = 0; app_indicators[i] != NULL; i++) {
+            if (g_strcmp0 (name, app_indicators[i]) == 0) {
+                found = TRUE;
+                break;
+            }
+        }
+        g_strfreev (app_indicators);
+    }
+
+    return found;
+}
+
 static void
 entry_added (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_data)
 {
     g_return_if_fail (entry != NULL);
 
-    if (g_strcmp0 (entry->name_hint, "nm-applet") != 0)
-        return;
+    if ((g_strcmp0 (entry->name_hint, "nm-applet") == 0) ||
+        (find_app_indicators (entry->name_hint)))
+    {
+        gboolean indicator_item_visible = FALSE;
+        gboolean indicator_item_sensitive = FALSE;
 
-    gboolean indicator_item_visible = FALSE;
-    gboolean indicator_item_sensitive = FALSE;
+        GtkWidget *item = gtk_menu_item_new ();
 
-    GtkWidget *item = gtk_menu_item_new ();
+        g_object_set_data (G_OBJECT (item), "indicator-entry", entry);
 
-    g_object_set_data (G_OBJECT (item), "indicator-entry", entry);
+        GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 3);
+        gtk_container_add (GTK_CONTAINER (item), hbox);
+        gtk_widget_show (hbox);
 
-    GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 3);
-    gtk_container_add (GTK_CONTAINER (item), hbox);
-    gtk_widget_show (hbox);
+        if (entry->image != NULL) {
+            gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->image), FALSE, FALSE, 0);
+            if (gtk_widget_get_visible (GTK_WIDGET (entry->image))) {
+                indicator_item_visible = TRUE;
+            }
 
-    if (entry->image != NULL) {
-        gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->image), FALSE, FALSE, 0);
-        if (gtk_widget_get_visible (GTK_WIDGET (entry->image))) {
-            indicator_item_visible = TRUE;
+            if (gtk_widget_get_sensitive (GTK_WIDGET (entry->image))) {
+                indicator_item_sensitive = TRUE;
+            }
+
+            g_signal_connect (G_OBJECT (entry->image), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
+            g_signal_connect (G_OBJECT (entry->image), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
+            g_signal_connect (G_OBJECT (entry->image), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
         }
-        
-        if (gtk_widget_get_sensitive (GTK_WIDGET (entry->image))) {
-            indicator_item_sensitive = TRUE;
+
+        if (entry->label != NULL) {
+            gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->label), FALSE, FALSE, 0);
+            if (gtk_widget_get_visible (GTK_WIDGET (entry->label))) {
+                indicator_item_visible = TRUE;
+            }
+
+            if (gtk_widget_get_sensitive (GTK_WIDGET (entry->label))) {
+                indicator_item_sensitive = TRUE;
+            }
+
+            g_signal_connect (G_OBJECT (entry->label), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
+            g_signal_connect (G_OBJECT (entry->label), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
+            g_signal_connect (G_OBJECT (entry->label), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
         }
-        
-        g_signal_connect (G_OBJECT (entry->image), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
-        g_signal_connect (G_OBJECT (entry->image), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
-        g_signal_connect (G_OBJECT (entry->image), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
+
+        if (entry->menu != NULL) {
+            gtk_menu_item_set_submenu (GTK_MENU_ITEM (item), GTK_WIDGET (entry->menu));
+        }
+
+        gtk_menu_shell_append (GTK_MENU_SHELL (indicator_menubar), item);
+
+        if (indicator_item_visible)
+            gtk_widget_show (item);
+
+        gtk_widget_set_sensitive (item, indicator_item_sensitive);
     }
-
-    if (entry->label != NULL) {
-        gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->label), FALSE, FALSE, 0);
-        if (gtk_widget_get_visible (GTK_WIDGET (entry->label))) {
-            indicator_item_visible = TRUE;
-        }
-        
-        if (gtk_widget_get_sensitive (GTK_WIDGET (entry->label))) {
-            indicator_item_sensitive = TRUE;
-        }
-        
-        g_signal_connect (G_OBJECT (entry->label), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
-        g_signal_connect (G_OBJECT (entry->label), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
-        g_signal_connect (G_OBJECT (entry->label), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
-    }
-
-    if (entry->menu != NULL) {
-        gtk_menu_item_set_submenu (GTK_MENU_ITEM (item), GTK_WIDGET (entry->menu));
-    }
-
-    gtk_menu_shell_append (GTK_MENU_SHELL (indicator_menubar), item);
-
-    if (indicator_item_visible)
-        gtk_widget_show (item);
-
-    gtk_widget_set_sensitive (item, indicator_item_sensitive);
 }
 
 static void
 entry_removed_cb (GtkWidget *widget, gpointer data)
 {
-	IndicatorObjectEntry *removed_entry = (IndicatorObjectEntry *)data;
+    IndicatorObjectEntry *removed_entry = (IndicatorObjectEntry *)data;
 
     IndicatorObjectEntry *entry = (IndicatorObjectEntry *)g_object_get_data (G_OBJECT (widget), "indicator-entry");
 
@@ -368,7 +389,7 @@ on_power_device_added_cb (UpClient *upclient, UpDevice *device, gpointer data)
 static void
 updevice_removed_cb (GtkWidget *widget, gpointer data)
 {
-	UpDevice *removed_device = (UpDevice *)data;
+    UpDevice *removed_device = (UpDevice *)data;
 
     UpDevice *device = (UpDevice*)g_object_get_data (G_OBJECT (widget), "updevice");
 
@@ -505,7 +526,7 @@ load_module (const gchar *name)
 }
 
 static void
-network_indicator_service_start (void)
+indicator_application_service_start (void)
 {
     gchar **argv = NULL;
     const gchar *cmd = "systemctl --user start indicator-application";
@@ -514,14 +535,34 @@ network_indicator_service_start (void)
     g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
     g_strfreev (argv);
+}
 
-	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
-	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
+static void
+network_indicator_application_start (void)
+{
+    g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
+    g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
 
     /* Make nm-applet hide items the user does not have permissions to interact with */
     g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
 
     g_spawn_command_line_async ("nm-applet", NULL);
+}
+
+static void
+other_indicator_application_start (void)
+{
+    gchar **app_indicators = config_get_string_list (NULL, "app-indicators", NULL);
+
+    if (!app_indicators)
+        return;
+
+    guint i;
+    for (i = 0; app_indicators[i] != NULL; i++) {
+        g_spawn_command_line_async (app_indicators[i], NULL);
+    }
+
+    g_strfreev (app_indicators);
 }
 
 static void
@@ -560,7 +601,7 @@ load_battery_indicator (void)
         g_ptr_array_free (array, TRUE);
     }
 
-	g_signal_connect (upower, "device-added", G_CALLBACK (on_power_device_added_cb), NULL);
+    g_signal_connect (upower, "device-added", G_CALLBACK (on_power_device_added_cb), NULL);
     g_signal_connect (upower, "device-removed", G_CALLBACK (on_power_device_removed_cb), NULL);
 }
 
@@ -692,6 +733,7 @@ power_window_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer
     return FALSE;
 }
 
+#if 0
 /* Handling window position */
 static gboolean
 read_position_from_str (const gchar *s, DimensionPosition *x)
@@ -780,33 +822,7 @@ get_absolute_position (const DimensionPosition *p, gint screen, gint window)
     else
         return x;
 }
-
-//gboolean
-//screen_overlay_get_child_position_cb (GtkWidget *overlay, GtkWidget *widget, GdkRectangle *allocation, gpointer user_data)
-//{
-//    const WindowPosition *pos = g_object_get_data (G_OBJECT (widget), WINDOW_DATA_POSITION);
-//    if (!pos)
-//        return FALSE;
-//
-//    gint screen_width = gtk_widget_get_allocated_width (overlay);
-//    gint screen_height = gtk_widget_get_allocated_height (overlay);
-//
-//    if (pos->use_size)
-//    {
-//        allocation->width = get_absolute_position (&pos->width, screen_width, 0);
-//        allocation->height = get_absolute_position (&pos->height, screen_height, 0);
-//    }
-//    else
-//    {
-//        gtk_widget_get_preferred_width (widget, NULL, &allocation->width);
-//        gtk_widget_get_preferred_height (widget, NULL, &allocation->height);
-//    }
-//
-//    allocation->x = get_absolute_position (&pos->x, screen_width, allocation->width);
-//    allocation->y = get_absolute_position (&pos->y, screen_height, allocation->height);
-//
-//    return TRUE;
-//}
+#endif
 
 /* Message label */
 static gboolean
@@ -1572,8 +1588,10 @@ main (int argc, char **argv)
 
     gtk_widget_show (GTK_WIDGET (screen_overlay));
 
-    /* Start the indicator services */
-    network_indicator_service_start ();
+    /* Start the indicator applications service */
+    indicator_application_service_start ();
+    network_indicator_application_start ();
+    other_indicator_application_start ();
 
     g_debug ("Run Gtk loop...");
     gtk_main ();
