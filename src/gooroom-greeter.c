@@ -320,27 +320,19 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
 {
     GtkImage *battery_image = GTK_IMAGE (data);
 
-    gdouble percentage;
-    g_object_get (device, "percentage", &percentage, NULL);
+	gchar *icon_name;
 
-    gchar *icon = "battery-full-symbolic";
-    if (percentage <= 75.0) {
-        icon = "battery-good-symbolic";
-    }
-
-    if (percentage <= 50.0) {
-        icon = "battery-low-symbolic";
-    }
-
-    if (percentage <= 25.0) {
-        icon = "battery-caution-symbolic";
-    }
+    g_object_get (device,
+                  "icon-name", &icon_name,
+                  NULL);
 
     GdkPixbuf *pix = NULL;
     pix = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
-                                    icon, 22,
+                                    icon_name, 22,
                                     GTK_ICON_LOOKUP_FORCE_SIZE,
                                     NULL);
+
+	g_free (icon_name);
 
     if (pix) {
         gtk_image_set_from_pixbuf (battery_image, pix);
