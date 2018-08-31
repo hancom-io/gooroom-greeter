@@ -277,9 +277,9 @@ static void monitor_draw_background                 (const Monitor* monitor,
 static gboolean monitor_window_draw_cb              (GtkWidget* widget,
                                                      cairo_t* cr,
                                                      const Monitor* monitor);
-static gboolean monitor_window_enter_notify_cb      (GtkWidget* widget,
-                                                     GdkEventCrossing* event,
-                                                     const Monitor* monitor);
+//static gboolean monitor_window_enter_notify_cb      (GtkWidget* widget,
+//                                                     GdkEventCrossing* event,
+//                                                     const Monitor* monitor);
 
 static GdkPixbuf* scale_image_file                  (const gchar* path,
                                                      ScalingMode mode,
@@ -1395,6 +1395,7 @@ monitor_window_draw_cb(GtkWidget* widget,
     return FALSE;
 }
 
+#if 0
 static gboolean
 monitor_window_enter_notify_cb(GtkWidget* widget,
                                GdkEventCrossing* event,
@@ -1427,6 +1428,7 @@ monitor_window_enter_notify_cb(GtkWidget* widget,
         greeter_background_set_active_monitor(monitor->object, monitor);
     return FALSE;
 }
+#endif
 
 static GdkPixbuf*
 scale_image_file(const gchar* path,

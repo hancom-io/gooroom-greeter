@@ -36,27 +36,25 @@ menubar,
 menuitem {
   padding: 0 3px 0 3px; }
 
-separator {
+#panel_separator {
   padding: 0 3px 0 3px;
   background-color: transparent;
   min-width: 1px;
   min-height: 1px; }
 
-#power_button {
+#dialog_button,
+#panel_button {
   color: #ffffff;
   border: none;
   box-shadow: none;
   background-image: none;
   background-color: transparent; }
-  #power_button:hover {
+  #panel_button:hover {
     color: #69d3ff; }
-  #power_button:active, #power_button:checked  {
+  #panel_button:active, #panel_button:checked  {
     color: #00b3fe; }
 
-#shutdown_dialog,
-#restart_dialog,
-#suspend_dialog,
-#hibernate_dialog {
+#dialog {
   font-weight: normal;
   border-style: none;
   border-radius: 5px;

@@ -48,14 +48,13 @@ static LightDMGreeter *greeter;
 static GtkOverlay   *screen_overlay;
 
 /* Login window */
-static GtkWidget    *login_window;
-static GtkWidget    *login_image, *login_shadow;
-static GtkWidget    *username_box;
-static GtkLabel     *username_label;
-static GtkEntry     *username_entry, *password_entry;
-static GtkLabel     *message_label;
-static GtkInfoBar   *info_bar;
-static GtkButton    *login_button;
+static GtkWidget    *login_win;
+static GtkWidget    *login_win_login_image, *login_win_shadow_image;
+static GtkWidget    *login_win_username_box;
+static GtkLabel     *login_win_username_label, *login_win_msg_label;
+static GtkEntry     *login_win_username_entry, *login_win_pw_entry;
+static GtkInfoBar   *login_win_infobar;
+static GtkButton    *login_win_login_button;
 
 /* Panel */
 static GtkWidget    *panel_box;
@@ -63,10 +62,27 @@ static GtkWidget    *btn_shutdown, *btn_restart, *btn_suspend, *btn_hibernate;
 static GtkWidget    *indicator_menubar;
 
 /* Power window */
-static GtkWidget    *power_window;
-static GtkButton    *power_ok_button, *power_cancel_button;
-static GtkLabel     *power_title, *power_text;
-static GtkImage     *power_icon;
+static GtkWidget    *cmd_win;
+static GtkButton    *cmd_win_ok_button, *cmd_win_cancel_button;
+static GtkLabel     *cmd_title_label, *cmd_msg_label;
+static GtkImage     *cmd_icon_image;
+
+static GtkWidget    *pw_set_win;
+static GtkButton    *pw_set_win_ok_button, *pw_set_win_cancel_button;
+static GtkLabel     *pw_set_win_title_label, *pw_set_win_prompt_label, *pw_set_win_msg_label;
+static GtkEntry     *pw_set_win_prompt_entry;
+
+static GtkWidget    *ask_win;
+static GtkButton    *ask_win_ok_button, *ask_win_cancel_button;
+static GtkLabel     *ask_win_msg_label, *ask_win_title_label;
+
+static GtkWidget    *msg_win;
+static GtkButton    *msg_win_ok_button;
+static GtkLabel     *msg_win_msg_label, *msg_win_title_label;
+
+static GtkWidget    *cur_show_win;
+static GtkWidget    *cur_focused_widget;
+static gboolean      changing_password;
 
 
 /* Clock */
@@ -96,11 +112,18 @@ static gchar *default_font_name,
              *default_theme_name,
              *default_icon_theme_name;
 
-
-static const gchar *POWER_WINDOW_DATA_LOOP = "power-window-loop";           /* <GMainLoop*> */
-static const gchar *POWER_WINDOW_DATA_RESPONSE = "power-window-response";   /* <GtkResponseType> */
+static const gchar *CMD_WIN_DATA = "cmd-win-data";
+static const gchar *MSG_WIN_DATA = "msg-win-data";
+static const gchar *ASK_WIN_DATA = "ask-win-data";
 
 //static const gchar *WINDOW_DATA_POSITION = "window-position"; /* <WindowPosition*> */
+
+enum {
+    SYSTEM_SHUTDOWN,
+    SYSTEM_RESTART,
+    SYSTEM_SUSPEND,
+    SYSTEM_HIBERNATE
+};
 
 /* Handling window position */
 typedef struct
@@ -144,14 +167,38 @@ struct SavedFocusData
 
 
 
-void     greeter_restore_focus(const gpointer saved_data);
-gpointer greeter_save_focus(GtkWidget* widget);
+gpointer greeter_save_focus                    (GtkWidget* widget);
+void     greeter_restore_focus                 (const gpointer saved_data);
 
-void     power_button_clicked_cb (GtkButton *button, gpointer user_data);
+void     login_win_pw_entry_activate_cb        (GtkWidget *widget);
+void     pw_set_win_prompt_entry_activate_cb   (GtkWidget *widget);
+void     pw_set_win_prompt_entry_changed_cb    (GtkEditable *editable,
+                                                gchar       *new_text,
+                                                gint         new_text_length,
+                                                gpointer     position,
+                                                gpointer     user_data);
 
-gboolean power_window_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+void     cmd_win_button_clicked_cb             (GtkButton *button, gpointer user_data);
+void     ask_win_button_clicked_cb             (GtkButton *button, gpointer user_data);
+void     msg_win_button_clicked_cb             (GtkButton *button, gpointer user_data);
+void     pw_set_win_button_clicked_cb          (GtkButton *button, gpointer user_data);
+void     login_win_login_button_clicked_cb     (GtkButton *button, gpointer user_data);
+
+gboolean login_win_pw_entry_key_press_cb       (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+gboolean login_win_username_entry_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+gboolean login_win_username_entry_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);
+
+gboolean cmd_win_key_press_event_cb            (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+gboolean ask_win_key_press_event_cb            (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+gboolean msg_win_key_press_event_cb            (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
+gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
 
 
+
+
+
+static void process_prompts (LightDMGreeter *greeter);
+static void start_authentication (const gchar *username);
 
 /* Clock */
 static gboolean
@@ -320,7 +367,7 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
 {
     GtkImage *battery_image = GTK_IMAGE (data);
 
-	gchar *icon_name;
+    gchar *icon_name;
 
     g_object_get (device,
                   "icon-name", &icon_name,
@@ -332,7 +379,7 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
                                     GTK_ICON_LOOKUP_FORCE_SIZE,
                                     NULL);
 
-	g_free (icon_name);
+    g_free (icon_name);
 
     if (pix) {
         gtk_image_set_from_pixbuf (battery_image, pix);
@@ -399,9 +446,76 @@ on_power_device_removed_cb (UpClient *upclient, UpDevice *device, gpointer data)
     gtk_container_foreach (GTK_CONTAINER (indicator_menubar), updevice_removed_cb, device);
 }
 
-/* Power window */
+static void
+hide_all_windows (void)
+{
+    gtk_widget_hide (ask_win);
+    gtk_widget_hide (msg_win);
+    gtk_widget_hide (cmd_win);
+    gtk_widget_hide (login_win);
+    gtk_widget_hide (pw_set_win);
+}
+
 static gboolean
-show_power_prompt (const gchar *action, const gchar* icon, const gchar* title, const gchar* message)
+grab_focus_cb (gpointer data)
+{
+    GtkWidget *focused = GTK_WIDGET (data);
+    gtk_widget_grab_focus (focused);
+    cur_focused_widget = focused;
+
+    return FALSE;
+}
+
+static void
+show_msg_window (const gchar *title, const gchar *msg, const gchar *ok, const gchar *data)
+{
+    gtk_label_set_label (msg_win_title_label, (title != NULL) ? title : "");
+    gtk_label_set_label (msg_win_msg_label, (msg != NULL) ? msg : "");
+    gtk_button_set_label (msg_win_ok_button, (ok != NULL) ? ok : "");
+
+    g_object_set_data (G_OBJECT (msg_win), MSG_WIN_DATA, (gpointer)data);
+
+    hide_all_windows ();
+    gtk_widget_show (msg_win);
+
+    g_timeout_add (50, grab_focus_cb, msg_win_ok_button);
+
+    cur_show_win = msg_win;
+}
+
+static void
+show_ask_window (const gchar *title, const gchar *msg, const gchar *ok, const gchar *cancel, const gchar *data)
+{
+    gtk_label_set_label (ask_win_title_label, (title != NULL) ? title : "");
+    gtk_label_set_label (ask_win_msg_label, (msg != NULL) ? msg : "");
+    gtk_button_set_label (ask_win_ok_button, (ok != NULL) ? ok : "");
+    gtk_button_set_label (ask_win_cancel_button, (cancel != NULL) ? cancel : "");
+
+    g_object_set_data (G_OBJECT (ask_win), ASK_WIN_DATA, (gpointer)data);
+
+    hide_all_windows ();
+    gtk_widget_show (ask_win);
+
+    g_timeout_add (50, grab_focus_cb, ask_win_ok_button);
+
+    cur_show_win = ask_win;
+}
+
+static void
+show_password_settings_window (void)
+{
+    gtk_entry_set_text (pw_set_win_prompt_entry, "");
+
+    hide_all_windows ();
+    gtk_widget_show (pw_set_win);
+
+    g_timeout_add (50, grab_focus_cb, pw_set_win_prompt_entry);
+
+    cur_show_win = pw_set_win;
+}
+
+static void
+show_power_prompt (const gchar* icon, const gchar* title, const gchar* message, int type)
 {
     gchar *new_message = NULL;
 
@@ -420,73 +534,66 @@ show_power_prompt (const gchar *action, const gchar* icon, const gchar* title, c
     {
         gchar *warning = g_strdup_printf (ngettext ("Warning: There is still %d user logged in.",
                                                     "Warning: There are still %d users logged in.",
-                                                    logged_in_users),
-                                          logged_in_users);
-        message = new_message = g_markup_printf_escaped ("<b>%s</b>\n%s", warning, message);
+                                                    logged_in_users), logged_in_users);
+
+        new_message = g_markup_printf_escaped ("<b>%s</b>\n%s", warning, message);
+
         g_free (warning);
+    } else {
+        new_message = g_strdup (message);
     }
 
-    gchar *dialog_name = g_strconcat (action, "_dialog", NULL);
-    gchar *button_name = g_strconcat (action, "_button", NULL);
+    gtk_button_set_label (cmd_win_ok_button, title);
+    gtk_label_set_label (cmd_title_label, title);
+    gtk_label_set_markup (cmd_msg_label, new_message);
+    gtk_image_set_from_icon_name (cmd_icon_image, icon, GTK_ICON_SIZE_DIALOG);
 
-    gtk_widget_set_name (power_window, dialog_name);
-    gtk_widget_set_name (GTK_WIDGET (power_ok_button), button_name);
-    gtk_button_set_label (power_ok_button, title);
-    gtk_label_set_label (power_title, title);
-    gtk_label_set_markup (power_text, message);
-    gtk_image_set_from_icon_name (power_icon, icon, GTK_ICON_SIZE_DIALOG);
-
-    g_free (button_name);
-    g_free (dialog_name);
     g_free (new_message);
 
-    GMainLoop *loop = g_main_loop_new (NULL, FALSE);
-    g_object_set_data (G_OBJECT (power_window), POWER_WINDOW_DATA_LOOP, loop);
-    g_object_set_data (G_OBJECT (power_window), POWER_WINDOW_DATA_RESPONSE, GINT_TO_POINTER (GTK_RESPONSE_CANCEL));
+    g_object_set_data (G_OBJECT (cmd_win), CMD_WIN_DATA, GINT_TO_POINTER (type));
 
-    GtkWidget *focused = gtk_window_get_focus (GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (screen_overlay))));
+    hide_all_windows ();
+    gtk_widget_show (cmd_win);
 
-    gtk_widget_hide (login_window);
-    gtk_widget_show (power_window);
-    gtk_widget_grab_focus (GTK_WIDGET (power_ok_button));
-
-    g_main_loop_run (loop);
-    GtkResponseType response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (power_window), POWER_WINDOW_DATA_RESPONSE));
-    g_main_loop_unref (loop);
-
-    gtk_widget_hide (power_window);
-    gtk_widget_show (login_window);
-
-    if (focused)
-        gtk_widget_grab_focus (focused);
-
-    return response == GTK_RESPONSE_YES;
+    gtk_widget_grab_focus (GTK_WIDGET (cmd_win_cancel_button));
 }
 
 static void
 on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
-    const gchar *name = (const gchar *)user_data;
+    const char *img, *title, *msg;
+    int type = GPOINTER_TO_INT (user_data);
 
-    if (g_strcmp0 (name, "shutdown") == 0) {
-        if (show_power_prompt ("shutdown", "gooroom-greeter-shutdown-symbolic", _("System shutdown"),
-                               _("Are you sure you want to close all programs and shut down the computer?")))
-            lightdm_shutdown (NULL);
-    } else if (g_strcmp0 (name, "restart") == 0) {
-        if (show_power_prompt ("restart", "gooroom-greeter-restart-symbolic", _("System restart"),
-                               _("Are you sure you want to close all programs and restart the computer?")))
-            lightdm_restart (NULL);
-    } else if (g_strcmp0 (name, "suspend") == 0) {
-        if (show_power_prompt (name, "gooroom-greeter-suspend-symbolic", _("System suspend"),
-                               _("Are you sure you want to suspend the computer?")))
-            lightdm_suspend (NULL);
-    } else if (g_strcmp0 (name, "hibernate") == 0) {
-        if (show_power_prompt ("hibernate", "gooroom-greeter-hibernate-symbolic", _("System hibernate"),
-                               _("Are you sure you want to hibernate the computer?")))
-            lightdm_hibernate (NULL);
-    } else {
+    switch (type) {
+        case SYSTEM_SHUTDOWN:
+            img = "gooroom-greeter-shutdown-symbolic";
+            title = _("System Shutdown");
+            msg = _("Are you sure you want to close all programs and shut down the computer?");
+        break;
+
+        case SYSTEM_RESTART:
+            img = "gooroom-greeter-restart-symbolic";
+            title = _("System Restart");
+            msg = _("Are you sure you want to close all programs and restart the computer?");
+        break;
+
+        case SYSTEM_SUSPEND:
+            img = "gooroom-greeter-suspend-symbolic";
+            title = _("System Suspend");
+            msg = _("Are you sure you want to suspend the computer?");
+        break;
+
+        case SYSTEM_HIBERNATE:
+            img = "gooroom-greeter-hibernate-symbolic";
+            title = _("System Hibernate");
+            msg = _("Are you sure you want to hibernate the computer?");
+        break;
+
+        default:
         return;
     }
+
+    show_power_prompt (img, title, msg, type);
 }
 
 static void
@@ -633,10 +740,10 @@ load_commands (void)
     gtk_widget_set_visible (btn_suspend, lightdm_get_can_suspend());
     gtk_widget_set_visible (btn_hibernate, lightdm_get_can_hibernate());
 
-    g_signal_connect (G_OBJECT (btn_shutdown), "clicked", G_CALLBACK (on_command_button_clicked_cb), (gpointer)"shutdown");
-    g_signal_connect (G_OBJECT (btn_restart), "clicked", G_CALLBACK (on_command_button_clicked_cb), (gpointer)"restart");
-    g_signal_connect (G_OBJECT (btn_suspend), "clicked", G_CALLBACK (on_command_button_clicked_cb), (gpointer)"suspend");
-    g_signal_connect (G_OBJECT (btn_hibernate), "clicked", G_CALLBACK (on_command_button_clicked_cb), (gpointer)"hibernate");
+    g_signal_connect (G_OBJECT (btn_shutdown), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_SHUTDOWN));
+    g_signal_connect (G_OBJECT (btn_restart), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_RESTART));
+    g_signal_connect (G_OBJECT (btn_suspend), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_SUSPEND));
+    g_signal_connect (G_OBJECT (btn_hibernate), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_HIBERNATE));
 }
 
 static void
@@ -658,7 +765,7 @@ read_monitor_configuration (const gchar *group, const gchar *name)
 }
 
 gpointer
-greeter_save_focus(GtkWidget* widget)
+greeter_save_focus (GtkWidget* widget)
 {
     GtkWidget *window = gtk_widget_get_toplevel(widget);
     if (!GTK_IS_WINDOW (window))
@@ -672,7 +779,7 @@ greeter_save_focus(GtkWidget* widget)
 }
 
 void
-greeter_restore_focus(const gpointer saved_data)
+greeter_restore_focus (const gpointer saved_data)
 {
     struct SavedFocusData *data = saved_data;
 
@@ -703,26 +810,29 @@ sigterm_cb (gpointer user_data)
     }
 }
 
-void
-power_button_clicked_cb (GtkButton *button, gpointer user_data)
+static void
+set_message_label (LightDMMessageType type, const gchar *text)
 {
-    GMainLoop *loop = g_object_get_data (G_OBJECT (power_window), POWER_WINDOW_DATA_LOOP);
-    if (g_main_loop_is_running (loop))
-        g_main_loop_quit (loop);
+    if (type == LIGHTDM_MESSAGE_TYPE_INFO)
+        gtk_info_bar_set_message_type (login_win_infobar, GTK_MESSAGE_INFO);
+    else
+        gtk_info_bar_set_message_type (login_win_infobar, GTK_MESSAGE_ERROR);
 
-    g_object_set_data (G_OBJECT (power_window), POWER_WINDOW_DATA_RESPONSE,
-                       GINT_TO_POINTER (button == power_ok_button ? GTK_RESPONSE_YES : GTK_RESPONSE_CANCEL));
+    const gchar *str = (text != NULL) ? text : "";
+    gtk_label_set_text (login_win_msg_label, str);
 }
 
-gboolean
-power_window_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+static void
+show_login_window (void)
 {
-    if (event->keyval == GDK_KEY_Escape)
-    {
-        power_button_clicked_cb (power_cancel_button, NULL);
-        return TRUE;
-    }
-    return FALSE;
+    hide_all_windows ();
+    gtk_widget_show (login_win);
+
+    cur_show_win = login_win;
+
+    gtk_entry_set_text (login_win_pw_entry, "");
+    gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
+    set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, NULL);
 }
 
 #if 0
@@ -820,19 +930,7 @@ get_absolute_position (const DimensionPosition *p, gint screen, gint window)
 static gboolean
 message_label_is_empty (void)
 {
-    return gtk_label_get_text (message_label)[0] == '\0';
-}
-
-static void
-set_message_label (LightDMMessageType type, const gchar *text)
-{
-    if (type == LIGHTDM_MESSAGE_TYPE_INFO)
-        gtk_info_bar_set_message_type (info_bar, GTK_MESSAGE_INFO);
-    else
-        gtk_info_bar_set_message_type (info_bar, GTK_MESSAGE_ERROR);
-
-    const gchar *str = (text != NULL) ? text : "";
-    gtk_label_set_text (message_label, str);
+    return gtk_label_get_text (login_win_msg_label)[0] == '\0';
 }
 
 /* Session */
@@ -924,25 +1022,31 @@ pam_message_finalize (PAMConversationMessage *message)
 static void
 process_prompts (LightDMGreeter *greeter)
 {
-    if (!pending_questions)
+    if (!pending_questions) {
         return;
+    }
 
     /* always allow the user to change username again */
-    gtk_widget_set_sensitive (GTK_WIDGET (username_entry), TRUE);
-    gtk_widget_set_sensitive (GTK_WIDGET (password_entry), TRUE);
+    gtk_widget_set_sensitive (GTK_WIDGET (login_win_username_entry), TRUE);
+    gtk_widget_set_sensitive (GTK_WIDGET (login_win_pw_entry), TRUE);
+
+    if (changing_password) {
+        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_prompt_entry), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_ok_button), TRUE);
+    }
 
     /* Special case: no user selected from list, so PAM asks us for the user
      * via a prompt. For that case, use the username field */
     if (!prompted && pending_questions && !pending_questions->next &&
         ((PAMConversationMessage *) pending_questions->data)->is_prompt &&
         ((PAMConversationMessage *) pending_questions->data)->type.prompt != LIGHTDM_PROMPT_TYPE_SECRET &&
-        gtk_widget_get_visible ((GTK_WIDGET (username_entry))) &&
+        gtk_widget_get_visible ((GTK_WIDGET (login_win_username_entry))) &&
         lightdm_greeter_get_authentication_user (greeter) == NULL)
     {
         prompted = TRUE;
         prompt_active = TRUE;
-        gtk_widget_grab_focus (GTK_WIDGET (username_entry));
-        gtk_widget_show (GTK_WIDGET (password_entry));
+        gtk_widget_grab_focus (GTK_WIDGET (login_win_username_entry));
+        gtk_widget_show (GTK_WIDGET (login_win_pw_entry));
         return;
     }
 
@@ -951,37 +1055,111 @@ process_prompts (LightDMGreeter *greeter)
         PAMConversationMessage *message = (PAMConversationMessage *) pending_questions->data;
         pending_questions = g_slist_remove (pending_questions, (gconstpointer) message);
 
+        const gchar *filter_msg1 = "You are required to change your password immediately";
+        const gchar *filter_msg2 = _("You are required to change your password immediately");
+        const gchar *filter_msg3 = "Temporary Password";
+        const gchar *filter_msg4 = "Until Password Expiration";
+        if ((strstr (message->text, filter_msg1) != NULL) ||
+             strstr (message->text, filter_msg2) != NULL) {
+            changing_password = TRUE;
+            show_ask_window (_("Password Expiration"),
+                _("Your password has expired.\nPlease change your password immediately."),
+                _("Changing Password"), _("Cancel"), "password_expiration");
+            continue;
+        } else if (strstr (message->text, filter_msg3) != NULL) {
+            changing_password = TRUE;
+            show_ask_window (_("Temporary Password Warning"),
+                _("Your password has been issued temporarily.\nFor security reasons, please change your password immediately."),
+                _("Changing Password"), _("Cancel"), "password_expiration");
+            continue;
+        } else if (strstr (message->text, filter_msg4) != NULL) {
+            gchar *msg = NULL;
+            gchar **tokens = g_strsplit (message->text, ":", -1);
+            if (tokens[1]) {
+                int daysleft = atoi (tokens[1]);
+                if (daysleft) {
+                    msg = g_strdup_printf (_("Your password will expire in %d day\nDo you want to change password now?"), daysleft);
+                } else {
+                    msg = g_strdup_printf (_("Your password will expire in %d days\nDo you want to change password now?"), daysleft);
+                }
+            } else {
+                msg = g_strdup (_("Your password will expire soon\nDo you want to change password now?"));
+            }
+            g_strfreev (tokens);
+
+            show_ask_window (_("Password Expiration Warning"), msg,
+                             _("Changing Password"), _("Cancel"), "ask_chpasswd");
+            g_free (msg);
+
+            continue;
+        }
+
         if (!message->is_prompt)
         {
             /* FIXME: this doesn't show multiple messages, but that was
              * already the case before. */
-            set_message_label (message->type.message, message->text);
+            if (changing_password) {
+                gtk_label_set_text (pw_set_win_msg_label, message->text);
+            } else {
+                set_message_label (message->type.message, message->text);
+            }
             continue;
         }
 
-        gtk_widget_show (GTK_WIDGET (password_entry));
-        gtk_widget_grab_focus (GTK_WIDGET (password_entry));
-        gtk_entry_set_text (password_entry, "");
-        gtk_entry_set_visibility (password_entry, message->type.prompt != LIGHTDM_PROMPT_TYPE_SECRET);
-        if (message_label_is_empty () && password_prompted)
-        {
-            /* No message was provided beforehand and this is not the
-             * first password prompt, so use the prompt as label,
-             * otherwise the user will be completely unclear of what
-             * is going on. Actually, the fact that prompt messages are
-             * not shown is problematic in general, especially if
-             * somebody uses a custom PAM module that wants to ask
-             * something different. */
-            gchar *str = message->text;
-            if (g_str_has_suffix (str, ": "))
-                str = g_strndup (str, strlen (str) - 2);
-            else if (g_str_has_suffix (str, ":"))
-                str = g_strndup (str, strlen (str) - 1);
-            set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, str);
-            if (str != message->text)
-                g_free (str);
+        if (changing_password) {
+            const gchar *title;
+            const gchar *prompt_label;
+            if ((strstr (message->text, _("(current) UNIX password")) != 0) ||
+                (strstr (message->text, "(current) UNIX password") != 0) ||
+                (strstr (message->text, "Enter current password") != 0)) {
+                title = _("Changing Password - [Step 1]");
+                prompt_label = _("Enter current password :");
+            } else if ((strstr (message->text, _("Enter new UNIX password")) != 0) ||
+                       (strstr (message->text, "Enter new UNIX password") != 0) ||
+                       (strstr (message->text, "Enter new password") != 0)) {
+                title = _("Changing Password - [Step 2]");
+                prompt_label = _("Enter new password :");
+            } else if ((strstr (message->text, _("Retype new UNIX password")) != 0) ||
+                       (strstr (message->text, "Retype new UNIX password") != 0) ||
+                       (strstr (message->text, "Retype new password") != 0)) {
+                title = _("Changing Password - [Step 3]");
+                prompt_label = _("Retype new password :");
+            } else {
+                title = NULL;
+                prompt_label = NULL;
+            }
+            gtk_label_set_text (pw_set_win_title_label, (title != NULL) ? title : "");
+            gtk_label_set_text (pw_set_win_prompt_label, (prompt_label != NULL) ? prompt_label : "");
+            gtk_entry_set_text (pw_set_win_prompt_entry, "");
+            gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
+        } else {
+            gtk_widget_show (GTK_WIDGET (login_win_pw_entry));
+            gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
+            gtk_entry_set_text (login_win_pw_entry, "");
+            gtk_entry_set_visibility (login_win_pw_entry, message->type.prompt != LIGHTDM_PROMPT_TYPE_SECRET);
+#if 0
+            if (message_label_is_empty () && password_prompted)
+            {
+                /* No message was provided beforehand and this is not the
+                 * first password prompt, so use the prompt as label,
+                 * otherwise the user will be completely unclear of what
+                 * is going on. Actually, the fact that prompt messages are
+                 * not shown is problematic in general, especially if
+                 * somebody uses a custom PAM module that wants to ask
+                 * something different. */
+                gchar *str = message->text;
+                if (g_str_has_suffix (str, ": "))
+                    str = g_strndup (str, strlen (str) - 2);
+                else if (g_str_has_suffix (str, ":"))
+                    str = g_strndup (str, strlen (str) - 1);
+                set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, str);
+                if (str != message->text)
+                    g_free (str);
+            }
+#endif
+            gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
         }
-        gtk_widget_grab_focus (GTK_WIDGET (password_entry));
+
         prompted = TRUE;
         password_prompted = TRUE;
         prompt_active = TRUE;
@@ -1009,7 +1187,7 @@ start_authentication (const gchar *username)
 
     if (g_strcmp0 (username, "*other") == 0)
     {
-        gtk_widget_show (GTK_WIDGET (username_entry));
+        gtk_widget_show (GTK_WIDGET (login_win_username_entry));
 #ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
         lightdm_greeter_authenticate (greeter, NULL, NULL);
 #else
@@ -1080,67 +1258,39 @@ start_session (void)
 }
 
 gboolean
-password_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
-G_MODULE_EXPORT
-gboolean
-password_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+login_win_username_entry_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
-    if ((event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down))
-    {
-        /* Back to username_entry if it is available */
-        if (event->keyval == GDK_KEY_Up &&
-            gtk_widget_get_visible (GTK_WIDGET (username_entry)) && widget == GTK_WIDGET (password_entry))
-        {
-            gtk_widget_grab_focus (GTK_WIDGET (username_entry));
-            return TRUE;
-        }
+    if (!g_strcmp0 (gtk_entry_get_text (login_win_username_entry), "") == 0)
+        start_authentication (gtk_entry_get_text (login_win_username_entry));
 
-        return TRUE;
-    }
     return FALSE;
 }
 
 gboolean
-username_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data);
-G_MODULE_EXPORT
-gboolean
-username_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+login_win_username_entry_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
-    if (!g_strcmp0(gtk_entry_get_text (username_entry), "") == 0)
-        start_authentication (gtk_entry_get_text (username_entry));
-    return FALSE;
-}
-
-gboolean
-username_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data);
-G_MODULE_EXPORT
-gboolean
-username_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
-{
-    /* Acts as password_entry */
+    /* Acts as login_win_pw_entry */
     if (event->keyval == GDK_KEY_Up)
-        return password_key_press_cb (widget, event, user_data);
+        return login_win_pw_entry_key_press_cb (widget, event, user_data);
     /* Enter activates the password entry */
-    else if (event->keyval == GDK_KEY_Return && gtk_widget_get_visible (GTK_WIDGET (password_entry)))
+    else if (event->keyval == GDK_KEY_Return && gtk_widget_get_visible (GTK_WIDGET (login_win_pw_entry)))
     {
-        gtk_widget_grab_focus (GTK_WIDGET (password_entry));
+        gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
         return TRUE;
     }
     else
         return FALSE;
 }
 
-void login_cb (GtkWidget *widget);
-G_MODULE_EXPORT
 void
-login_cb (GtkWidget *widget)
+login_win_login_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
     /* Reset to default screensaver values */
     if (lightdm_greeter_get_lock_hint (greeter))
         XSetScreenSaver (gdk_x11_display_get_xdisplay (gdk_display_get_default ()), timeout, interval, prefer_blanking, allow_exposures);
 
-    gtk_widget_set_sensitive (GTK_WIDGET (username_entry), FALSE);
-    gtk_widget_set_sensitive (GTK_WIDGET (password_entry), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (login_win_username_entry), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (login_win_pw_entry), FALSE);
     set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, NULL);
     prompt_active = FALSE;
 
@@ -1149,9 +1299,9 @@ login_cb (GtkWidget *widget)
     else if (lightdm_greeter_get_in_authentication (greeter))
     {
 #ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
-        lightdm_greeter_respond (greeter, gtk_entry_get_text (password_entry), NULL);
+        lightdm_greeter_respond (greeter, gtk_entry_get_text (login_win_pw_entry), NULL);
 #else
-        lightdm_greeter_respond (greeter, gtk_entry_get_text (password_entry));
+        lightdm_greeter_respond (greeter, gtk_entry_get_text (login_win_pw_entry));
 #endif
         /* If we have questions pending, then we continue processing
          * those, until we are done. (Otherwise, authentication will
@@ -1161,6 +1311,232 @@ login_cb (GtkWidget *widget)
     }
     else
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
+}
+
+void
+login_win_pw_entry_activate_cb (GtkWidget *widget)
+{
+    login_win_login_button_clicked_cb (login_win_login_button, NULL);
+}
+
+gboolean
+login_win_pw_entry_key_press_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if ((event->keyval == GDK_KEY_Up || event->keyval == GDK_KEY_Down))
+    {
+        /* Back to login_win_username_entry if it is available */
+        if (event->keyval == GDK_KEY_Up &&
+            gtk_widget_get_visible (GTK_WIDGET (login_win_username_entry)) && widget == GTK_WIDGET (login_win_pw_entry))
+        {
+            gtk_widget_grab_focus (GTK_WIDGET (login_win_username_entry));
+            return TRUE;
+        }
+
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void
+pw_set_win_prompt_entry_changed_cb (GtkEditable *editable,
+                                    gchar       *new_text,
+                                    gint         new_text_length,
+                                    gpointer     position,
+                                    gpointer     user_data)
+{
+    if (new_text_length > 0)
+        gtk_label_set_text (pw_set_win_msg_label, "");
+}
+
+void
+pw_set_win_button_clicked_cb (GtkButton *button, gpointer user_data)
+{
+    if (button == pw_set_win_cancel_button) {
+        changing_password = FALSE;
+        gtk_label_set_text (pw_set_win_msg_label, "");
+        gtk_entry_set_text (pw_set_win_prompt_entry, "");
+        show_login_window ();
+        start_authentication (lightdm_greeter_get_authentication_user (greeter));
+        return;
+    }
+
+    if (button == pw_set_win_ok_button) {
+        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_prompt_entry), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_ok_button), FALSE);
+        prompt_active = FALSE;
+
+        if (lightdm_greeter_get_in_authentication (greeter)) {
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+            lightdm_greeter_respond (greeter, gtk_entry_get_text (pw_set_win_prompt_entry), NULL);
+#else
+            lightdm_greeter_respond (greeter, gtk_entry_get_text (pw_set_win_prompt_entry));
+#endif
+            /* If we have questions pending, then we continue processing
+             * those, until we are done. (Otherwise, authentication will
+             * not complete.) */
+            if (pending_questions)
+                process_prompts (greeter);
+        }
+    }
+}
+
+void
+pw_set_win_prompt_entry_activate_cb (GtkWidget *widget)
+{
+    pw_set_win_button_clicked_cb (pw_set_win_ok_button, NULL);
+}
+
+gboolean
+pw_set_win_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if (event->keyval == GDK_KEY_Escape) {
+        pw_set_win_button_clicked_cb (pw_set_win_cancel_button, NULL);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+void
+cmd_win_button_clicked_cb (GtkButton *button, gpointer user_data)
+{
+    if (button == cmd_win_cancel_button) {
+        gtk_widget_hide (cmd_win);
+        gtk_widget_show (cur_show_win);
+
+        g_timeout_add (50, grab_focus_cb, cur_focused_widget);
+
+        return;
+    }
+
+    int type = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cmd_win), CMD_WIN_DATA));
+
+    if (button == cmd_win_ok_button) {
+        switch (type)
+        {
+            case SYSTEM_SHUTDOWN:
+                lightdm_shutdown (NULL);
+                break;
+
+            case SYSTEM_RESTART:
+                lightdm_restart (NULL);
+                break;
+
+            case SYSTEM_SUSPEND:
+                lightdm_suspend (NULL);
+                break;
+
+            case SYSTEM_HIBERNATE:
+                lightdm_hibernate (NULL);
+                break;
+
+            default:
+                return;
+        }
+    }
+}
+
+gboolean
+cmd_win_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if (event->keyval == GDK_KEY_Escape)
+    {
+        cmd_win_button_clicked_cb (cmd_win_cancel_button, NULL);
+        return TRUE;
+    }
+    return FALSE;
+}
+
+void
+ask_win_button_clicked_cb (GtkButton *button, gpointer user_data)
+{
+    const gchar *data = g_object_get_data (G_OBJECT (ask_win), ASK_WIN_DATA);
+
+    if (button == ask_win_cancel_button) {
+        if (g_strcmp0 (data, "ask_chpasswd") == 0) {
+            if (lightdm_greeter_get_in_authentication (greeter)) {
+                changing_password = FALSE;
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+                lightdm_greeter_respond (greeter, "chpasswd_no", NULL);
+#else
+                lightdm_greeter_respond (greeter, "chpasswd_no");
+#endif
+                return;
+            }
+        }
+
+        changing_password = FALSE;
+        gtk_label_set_text (pw_set_win_msg_label, "");
+        gtk_entry_set_text (pw_set_win_prompt_entry, "");
+        show_login_window ();
+        start_authentication (lightdm_greeter_get_authentication_user (greeter));
+
+        return;
+    }
+
+    if (button == ask_win_ok_button) {
+        if (g_strcmp0 (data, "password_expiration") == 0) {
+            show_password_settings_window ();
+        }
+
+        if (g_strcmp0 (data, "ask_chpasswd") == 0) {
+            gtk_label_set_text (pw_set_win_msg_label, "");
+            gtk_entry_set_text (pw_set_win_prompt_entry, "");
+
+            if (lightdm_greeter_get_in_authentication (greeter)) {
+                changing_password = TRUE;
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+                lightdm_greeter_respond (greeter, "chpasswd_yes", NULL);
+#else
+                lightdm_greeter_respond (greeter, "chpasswd_yes");
+#endif
+                show_password_settings_window ();
+            } else {
+                changing_password = FALSE;
+
+                show_login_window ();
+                start_authentication (lightdm_greeter_get_authentication_user (greeter));
+            }
+        }
+    }
+}
+
+gboolean
+ask_win_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if (event->keyval == GDK_KEY_Escape) {
+        ask_win_button_clicked_cb (ask_win_cancel_button, NULL);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+void
+msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
+{
+    const gchar *data = g_object_get_data (G_OBJECT (msg_win), MSG_WIN_DATA);
+
+    if (g_strcmp0 (data, "FAILURE_CHPASSWD") == 0) {
+        changing_password = FALSE;
+        gtk_label_set_text (pw_set_win_msg_label, "");
+        gtk_entry_set_text (pw_set_win_prompt_entry, "");
+        show_login_window ();
+        start_authentication (lightdm_greeter_get_authentication_user (greeter));
+    }
+}
+
+gboolean
+msg_win_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+{
+    if (event->keyval == GDK_KEY_Escape) {
+        msg_win_button_clicked_cb (msg_win_ok_button, NULL);
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 static void
@@ -1230,7 +1606,7 @@ static void
 authentication_complete_cb (LightDMGreeter *greeter)
 {
     prompt_active = FALSE;
-    gtk_entry_set_text (password_entry, "");
+    gtk_entry_set_text (login_win_pw_entry, "");
 
     if (pending_questions)
     {
@@ -1244,7 +1620,7 @@ authentication_complete_cb (LightDMGreeter *greeter)
             start_session ();
         else
         {
-            gtk_widget_hide (GTK_WIDGET (password_entry));
+            gtk_widget_hide (GTK_WIDGET (login_win_pw_entry));
         }
     }
     else
@@ -1253,7 +1629,7 @@ authentication_complete_cb (LightDMGreeter *greeter)
          * The error message probably comes from the PAM module that has a better knowledge
          * of the failure. */
         gboolean have_pam_error = !message_label_is_empty () &&
-                                  gtk_info_bar_get_message_type (info_bar) != GTK_MESSAGE_ERROR;
+                                  gtk_info_bar_get_message_type (login_win_infobar) != GTK_MESSAGE_ERROR;
         if (prompted)
         {
             if (!have_pam_error)
@@ -1265,6 +1641,13 @@ authentication_complete_cb (LightDMGreeter *greeter)
             g_warning ("Failed to authenticate");
             if (!have_pam_error)
                 set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Failed to authenticate"));
+        }
+
+        if (changing_password) {
+            show_msg_window (_("Failure Of Changing Password"),
+                             _("Failed to change password.\nPlease try again."),
+                             _("Ok"),
+                             "FAILURE_CHPASSWD");
         }
     }
 }
@@ -1313,8 +1696,6 @@ main (int argc, char **argv)
 
     /* Prevent memory from being swapped out, as we are dealing with passwords */
     mlockall (MCL_CURRENT | MCL_FUTURE);
-
-    g_message ("Starting %s (%s, %s)", PACKAGE_STRING, __DATE__, __TIME__);
 
     /* LP: #1024482 */
     g_setenv ("GDK_CORE_DEVICE_EVENTS", "1", TRUE);
@@ -1435,16 +1816,16 @@ main (int argc, char **argv)
     screen_overlay = GTK_OVERLAY (gtk_builder_get_object (builder, "screen_overlay"));
 
     /* Login window */
-    login_window = GTK_WIDGET (gtk_builder_get_object (builder, "login_window"));
-    login_image = GTK_WIDGET (gtk_builder_get_object (builder, "login_image"));
-    login_shadow = GTK_WIDGET (gtk_builder_get_object (builder, "login_shadow"));
-    username_box = GTK_WIDGET (gtk_builder_get_object (builder, "username_box"));
-    username_label = GTK_LABEL (gtk_builder_get_object (builder, "username_label"));
-    username_entry = GTK_ENTRY (gtk_builder_get_object (builder, "username_entry"));
-    password_entry = GTK_ENTRY (gtk_builder_get_object (builder, "password_entry"));
-    info_bar = GTK_INFO_BAR (gtk_builder_get_object (builder, "greeter_infobar"));
-    message_label = GTK_LABEL (gtk_builder_get_object (builder, "message_label"));
-    login_button = GTK_BUTTON (gtk_builder_get_object (builder, "login_button"));
+    login_win = GTK_WIDGET (gtk_builder_get_object (builder, "login_win"));
+    login_win_login_image = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_login_image"));
+    login_win_shadow_image = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_shadow_image"));
+    login_win_username_box = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_username_box"));
+    login_win_username_label = GTK_LABEL (gtk_builder_get_object (builder, "login_win_username_label"));
+    login_win_username_entry = GTK_ENTRY (gtk_builder_get_object (builder, "login_win_username_entry"));
+    login_win_pw_entry = GTK_ENTRY (gtk_builder_get_object (builder, "login_win_pw_entry"));
+    login_win_infobar = GTK_INFO_BAR (gtk_builder_get_object (builder, "login_win_infobar"));
+    login_win_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "login_win_msg_label"));
+    login_win_login_button = GTK_BUTTON (gtk_builder_get_object (builder, "login_win_login_button"));
 
     /* Bottom panel */
     panel_box = GTK_WIDGET (gtk_builder_get_object (builder, "panel_box"));
@@ -1458,15 +1839,39 @@ main (int argc, char **argv)
     indicator_menubar = GTK_WIDGET (gtk_builder_get_object (builder, "indicator_menubar"));
 
     /* Power dialog */
-    power_window = GTK_WIDGET (gtk_builder_get_object (builder, "power_window"));
-    power_ok_button = GTK_BUTTON (gtk_builder_get_object (builder, "power_ok_button"));
-    power_cancel_button = GTK_BUTTON (gtk_builder_get_object (builder, "power_cancel_button"));
-    power_title = GTK_LABEL (gtk_builder_get_object (builder, "power_title"));
-    power_text = GTK_LABEL (gtk_builder_get_object (builder, "power_text"));
-    power_icon = GTK_IMAGE (gtk_builder_get_object (builder, "power_icon"));
+    cmd_win = GTK_WIDGET (gtk_builder_get_object (builder, "cmd_win"));
+    cmd_win_ok_button = GTK_BUTTON (gtk_builder_get_object (builder, "cmd_win_ok_button"));
+    cmd_win_cancel_button = GTK_BUTTON (gtk_builder_get_object (builder, "cmd_win_cancel_button"));
+    cmd_title_label = GTK_LABEL (gtk_builder_get_object (builder, "cmd_title_label"));
+    cmd_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "cmd_msg_label"));
+    cmd_icon_image = GTK_IMAGE (gtk_builder_get_object (builder, "cmd_icon_image"));
 
-    gtk_overlay_add_overlay (screen_overlay, login_window);
-    gtk_overlay_add_overlay (screen_overlay, power_window);
+    /* Password Settings Window */
+    pw_set_win = GTK_WIDGET (gtk_builder_get_object (builder, "pw_set_win"));
+    pw_set_win_ok_button = GTK_BUTTON (gtk_builder_get_object (builder, "pw_set_win_ok_button"));
+    pw_set_win_cancel_button = GTK_BUTTON (gtk_builder_get_object (builder, "pw_set_win_cancel_button"));
+    pw_set_win_title_label = GTK_LABEL (gtk_builder_get_object (builder, "pw_set_win_title_label"));
+    pw_set_win_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "pw_set_win_msg_label"));
+    pw_set_win_prompt_label = GTK_LABEL (gtk_builder_get_object (builder, "pw_set_win_prompt_label"));
+    pw_set_win_prompt_entry = GTK_ENTRY (gtk_builder_get_object (builder, "pw_set_win_prompt_entry"));
+
+    /* Question Window */
+    ask_win = GTK_WIDGET (gtk_builder_get_object (builder, "ask_win"));
+    ask_win_ok_button = GTK_BUTTON (gtk_builder_get_object (builder, "ask_win_ok_button"));
+    ask_win_cancel_button = GTK_BUTTON (gtk_builder_get_object (builder, "ask_win_cancel_button"));
+    ask_win_title_label = GTK_LABEL (gtk_builder_get_object (builder, "ask_win_title_label"));
+    ask_win_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "ask_win_msg_label"));
+
+    msg_win = GTK_WIDGET (gtk_builder_get_object (builder, "msg_win"));
+    msg_win_ok_button = GTK_BUTTON (gtk_builder_get_object (builder, "msg_win_ok_button"));
+    msg_win_title_label = GTK_LABEL (gtk_builder_get_object (builder, "msg_win_title_label"));
+    msg_win_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "msg_win_msg_label"));
+
+    gtk_overlay_add_overlay (screen_overlay, login_win);
+    gtk_overlay_add_overlay (screen_overlay, cmd_win);
+    gtk_overlay_add_overlay (screen_overlay, pw_set_win);
+    gtk_overlay_add_overlay (screen_overlay, ask_win);
+    gtk_overlay_add_overlay (screen_overlay, msg_win);
     gtk_overlay_add_overlay (screen_overlay, panel_box);
 
     clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%F        %p %I:%M");
@@ -1487,11 +1892,11 @@ main (int argc, char **argv)
     GdkPixbuf *user_pixbuf = gdk_pixbuf_new_from_file (user_img_path, NULL);
     GdkPixbuf *pass_pixbuf = gdk_pixbuf_new_from_file (pass_img_path, NULL);
 
-    gtk_entry_set_icon_from_pixbuf (GTK_ENTRY (username_entry), GTK_ENTRY_ICON_PRIMARY, user_pixbuf);
-    gtk_entry_set_icon_from_pixbuf (GTK_ENTRY (password_entry), GTK_ENTRY_ICON_PRIMARY, pass_pixbuf);
+    gtk_entry_set_icon_from_pixbuf (GTK_ENTRY (login_win_username_entry), GTK_ENTRY_ICON_PRIMARY, user_pixbuf);
+    gtk_entry_set_icon_from_pixbuf (GTK_ENTRY (login_win_pw_entry), GTK_ENTRY_ICON_PRIMARY, pass_pixbuf);
 
-    gtk_image_set_from_file (GTK_IMAGE (login_image), symbol_img_path);
-    gtk_image_set_from_file (GTK_IMAGE (login_shadow), shadow_img_path);
+    gtk_image_set_from_file (GTK_IMAGE (login_win_login_image), symbol_img_path);
+    gtk_image_set_from_file (GTK_IMAGE (login_win_shadow_image), shadow_img_path);
 
     g_free (user_img_path);
     g_free (pass_img_path);
@@ -1540,30 +1945,36 @@ main (int argc, char **argv)
 
     if (logged_in)
     {
-        gtk_label_set_text (username_label, user_name);
-        gtk_widget_show (GTK_WIDGET (username_box));
-        gtk_widget_hide (GTK_WIDGET (username_entry));
-        gtk_button_set_label (login_button, _("Unlock"));
+        gtk_label_set_text (login_win_username_label, user_name);
+        gtk_widget_show (GTK_WIDGET (login_win_username_box));
+        gtk_widget_hide (GTK_WIDGET (login_win_username_entry));
+        gtk_button_set_label (login_win_login_button, _("Unlock"));
         start_authentication (user_name);
     }
     else
     {
-        gtk_label_set_text (username_label, NULL);
-        gtk_widget_show (GTK_WIDGET (username_entry));
-        gtk_widget_hide (GTK_WIDGET (username_box));
-        gtk_button_set_label (login_button, _("Log In"));
+        gtk_label_set_text (login_win_username_label, NULL);
+        gtk_widget_show (GTK_WIDGET (login_win_username_entry));
+        gtk_widget_hide (GTK_WIDGET (login_win_username_box));
+        gtk_button_set_label (login_win_login_button, _("Log In"));
         start_authentication ("*other");
     }
 
     /* Windows positions */
 //    value = config_get_string (NULL, CONFIG_KEY_POSITION, NULL);
-//    g_object_set_data_full (G_OBJECT (login_window), WINDOW_DATA_POSITION, str_to_position (value, &WINDOW_POS_CENTER), g_free);
+//    g_object_set_data_full (G_OBJECT (login_win), WINDOW_DATA_POSITION, str_to_position (value, &WINDOW_POS_CENTER), g_free);
 //    g_free (value);
 
-    gtk_widget_set_halign (login_window, GTK_ALIGN_CENTER);
-    gtk_widget_set_valign (login_window, GTK_ALIGN_CENTER);
-    gtk_widget_set_halign (power_window, GTK_ALIGN_CENTER);
-    gtk_widget_set_valign (power_window, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (login_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (login_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (cmd_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (cmd_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (pw_set_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (pw_set_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (ask_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (ask_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_halign (msg_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (msg_win, GTK_ALIGN_CENTER);
     gtk_widget_set_valign (panel_box, GTK_ALIGN_END);
 
     gtk_builder_connect_signals (builder, greeter);
@@ -1579,6 +1990,9 @@ main (int argc, char **argv)
     gdk_window_add_filter (root_window, wm_window_filter, NULL);
 
     gtk_widget_show (GTK_WIDGET (screen_overlay));
+
+    cur_show_win = login_win;
+    changing_password = FALSE;
 
     /* Start the indicator applications service */
     indicator_application_service_start ();

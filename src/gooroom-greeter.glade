@@ -2,7 +2,269 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
-  <object class="GtkEventBox" id="login_window">
+  <object class="GtkEventBox" id="ask_win">
+    <property name="name">dialog</property>
+    <property name="can_focus">False</property>
+    <signal name="key-press-event" handler="ask_win_key_press_event_cb" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">content_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">15</property>
+                <property name="row_spacing">18</property>
+                <property name="column_spacing">24</property>
+                <child>
+                  <object class="GtkImage" id="ask_icon_image">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">dialog-question-symbolic</property>
+                    <property name="icon_size">6</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                    <property name="height">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="ask_win_msg_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label" translatable="yes">[message]</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="ask_win_title_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label">[title]</property>
+                    <attributes>
+                      <attribute name="weight" value="semibold"/>
+                      <attribute name="size" value="12000"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">buttonbox_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButtonBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">12</property>
+                <property name="spacing">6</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <object class="GtkButton" id="ask_win_ok_button">
+                    <property name="label" translatable="yes">Ok</property>
+                    <property name="name">dialog_button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="ask_win_button_clicked_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                    <property name="non_homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="ask_win_cancel_button">
+                    <property name="label">Cancel</property>
+                    <property name="name">dialog_button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="ask_win_button_clicked_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                    <property name="non_homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkEventBox" id="cmd_win">
+    <property name="name">dialog</property>
+    <property name="can_focus">False</property>
+    <signal name="key-press-event" handler="cmd_win_key_press_event_cb" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">content_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">15</property>
+                <property name="row_spacing">18</property>
+                <property name="column_spacing">24</property>
+                <child>
+                  <object class="GtkImage" id="power_icon_image">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">gooroom-greeter-shutdown-symbolic</property>
+                    <property name="icon_size">6</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                    <property name="height">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="cmd_msg_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label" translatable="yes">[text]</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="cmd_title_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label">[title]</property>
+                    <attributes>
+                      <attribute name="weight" value="semibold"/>
+                      <attribute name="size" value="12000"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">buttonbox_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButtonBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">12</property>
+                <property name="spacing">6</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <object class="GtkButton" id="cmd_win_ok_button">
+                    <property name="label">gtk-ok</property>
+                    <property name="name">dialog_button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
+                    <signal name="clicked" handler="cmd_win_button_clicked_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                    <property name="non_homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="cmd_win_cancel_button">
+                    <property name="label">gtk-cancel</property>
+                    <property name="name">dialog_button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
+                    <signal name="clicked" handler="cmd_win_button_clicked_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                    <property name="non_homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkEventBox" id="login_win">
     <property name="name">login_window</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -42,12 +304,12 @@
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox" id="username_box">
+                              <object class="GtkBox" id="login_win_username_box">
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">3</property>
                                 <child>
-                                  <object class="GtkLabel" id="username_label">
+                                  <object class="GtkLabel" id="login_win_username_label">
                                     <property name="name">username_label</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -91,7 +353,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="username_entry">
+                              <object class="GtkEntry" id="login_win_username_entry">
                                 <property name="name">prompt_entry</property>
                                 <property name="height_request">32</property>
                                 <property name="visible">True</property>
@@ -102,8 +364,8 @@
                                 <property name="primary_icon_activatable">False</property>
                                 <property name="secondary_icon_activatable">False</property>
                                 <property name="placeholder_text" translatable="yes">Enter your username</property>
-                                <signal name="focus-out-event" handler="username_focus_out_cb" swapped="no"/>
-                                <signal name="key-press-event" handler="username_key_press_cb" swapped="no"/>
+                                <signal name="focus-out-event" handler="login_win_username_entry_focus_out_cb" swapped="no"/>
+                                <signal name="key-press-event" handler="login_win_username_entry_key_press_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -119,7 +381,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry" id="password_entry">
+                          <object class="GtkEntry" id="login_win_pw_entry">
                             <property name="name">prompt_entry</property>
                             <property name="height_request">32</property>
                             <property name="visible">True</property>
@@ -130,8 +392,8 @@
                             <property name="width_chars">32</property>
                             <property name="primary_icon_activatable">False</property>
                             <property name="placeholder_text" translatable="yes">Enter your password</property>
-                            <signal name="activate" handler="login_cb" swapped="no"/>
-                            <signal name="key-press-event" handler="password_key_press_cb" swapped="no"/>
+                            <signal name="activate" handler="login_win_pw_entry_activate_cb" swapped="no"/>
+                            <signal name="key-press-event" handler="login_win_pw_entry_key_press_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -147,7 +409,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkInfoBar" id="greeter_infobar">
+                      <object class="GtkInfoBar" id="login_win_infobar">
                         <property name="name">greeter_infobar</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -169,7 +431,7 @@
                           <object class="GtkBox">
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkLabel" id="message_label">
+                              <object class="GtkLabel" id="login_win_msg_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" comments="This is a placeholder string and will be replaced with a message from PAM">[message]</property>
@@ -198,13 +460,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkButton" id="login_button">
+                      <object class="GtkButton" id="login_win_login_button">
                         <property name="label" translatable="yes">Log In</property>
                         <property name="name">login_button</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="login_cb" swapped="no"/>
+                        <signal name="clicked" handler="login_win_login_button_clicked_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -217,7 +479,7 @@
               </object>
             </child>
             <child type="label">
-              <object class="GtkImage" id="login_image">
+              <object class="GtkImage" id="login_win_login_image">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">center</property>
@@ -234,10 +496,124 @@
           </packing>
         </child>
         <child>
-          <object class="GtkImage" id="login_shadow">
+          <object class="GtkImage" id="login_win_shadow_image">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="stock">gtk-missing-image</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkEventBox" id="msg_win">
+    <property name="name">dialog</property>
+    <property name="can_focus">False</property>
+    <signal name="key-press-event" handler="msg_win_key_press_event_cb" swapped="no"/>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">content_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">15</property>
+                <property name="row_spacing">18</property>
+                <property name="column_spacing">24</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">dialog-information-symbolic</property>
+                    <property name="icon_size">6</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                    <property name="height">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="msg_win_msg_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label" translatable="yes">[message]</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="msg_win_title_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label">[title]</property>
+                    <attributes>
+                      <attribute name="weight" value="semibold"/>
+                      <attribute name="size" value="12000"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">0</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEventBox">
+            <property name="name">buttonbox_frame</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkButtonBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="border_width">12</property>
+                <property name="spacing">6</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <object class="GtkButton" id="msg_win_ok_button">
+                    <property name="label" translatable="yes">Ok</property>
+                    <property name="name">dialog_button</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="clicked" handler="msg_win_button_clicked_cb" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                    <property name="non_homogeneous">True</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -263,10 +639,11 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="btn_hibernate">
-                <property name="name">power_button</property>
+                <property name="name">panel_button</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Hibernate system</property>
                 <property name="relief">none</property>
                 <child>
                   <object class="GtkBox">
@@ -311,10 +688,11 @@
             </child>
             <child>
               <object class="GtkButton" id="btn_suspend">
-                <property name="name">power_button</property>
+                <property name="name">panel_button</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Suspend system</property>
                 <property name="relief">none</property>
                 <child>
                   <object class="GtkBox">
@@ -359,10 +737,11 @@
             </child>
             <child>
               <object class="GtkButton" id="btn_restart">
-                <property name="name">power_button</property>
+                <property name="name">panel_button</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_text" translatable="yes">Restart system</property>
                 <property name="relief">none</property>
                 <child>
                   <object class="GtkBox">
@@ -407,7 +786,7 @@
             </child>
             <child>
               <object class="GtkButton" id="btn_shutdown">
-                <property name="name">power_button</property>
+                <property name="name">panel_button</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -462,6 +841,7 @@
         </child>
         <child>
           <object class="GtkSeparator">
+            <property name="name">panel_separator</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
@@ -487,96 +867,125 @@
       </object>
     </child>
   </object>
-  <object class="GtkEventBox" id="power_window">
-    <property name="name">power_window</property>
+  <object class="GtkEventBox" id="pw_set_win">
+    <property name="name">dialog</property>
     <property name="can_focus">False</property>
-    <property name="halign">center</property>
-    <property name="valign">center</property>
-    <signal name="key-press-event" handler="power_window_key_press_event_cb" swapped="no"/>
+    <signal name="key-press-event" handler="pw_set_win_key_press_event_cb" swapped="no"/>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkEventBox">
-            <property name="name">content_frame</property>
+          <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="margin_left">12</property>
+            <property name="margin_right">12</property>
+            <property name="border_width">12</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">36</property>
             <child>
-              <object class="GtkGrid">
+              <object class="GtkLabel" id="pw_set_win_title_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="border_width">15</property>
-                <property name="row_spacing">18</property>
-                <property name="column_spacing">24</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">[title]</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                  <attribute name="foreground" value="#000000000000"/>
+                  <attribute name="size" value="12000"/>
+                </attributes>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">18</property>
                 <child>
-                  <object class="GtkImage" id="power_icon">
+                  <object class="GtkBox">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="pixel_size">48</property>
-                    <property name="icon_name">gooroom-greeter-shutdown-symbolic</property>
-                    <property name="icon_size">6</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="pw_set_win_prompt_label">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">[prompt message]</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="pw_set_win_prompt_entry">
+                        <property name="name">prompt_entry</property>
+                        <property name="height_request">32</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="max_length">256</property>
+                        <property name="visibility">False</property>
+                        <property name="invisible_char">●</property>
+                        <property name="width_chars">32</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <signal name="activate" handler="pw_set_win_prompt_entry_activate_cb" swapped="no"/>
+                        <signal name="insert-text" handler="pw_set_win_prompt_entry_changed_cb" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
-                    <property name="left_attach">0</property>
-                    <property name="top_attach">0</property>
-                    <property name="height">2</property>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="power_text">
+                  <object class="GtkLabel" id="pw_set_win_msg_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
-                    <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">[text]</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="top_attach">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="power_title">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="hexpand">True</property>
-                    <property name="label">[title]</property>
                     <attributes>
-                      <attribute name="weight" value="semibold"/>
+                      <attribute name="style" value="italic"/>
+                      <attribute name="weight" value="bold"/>
+                      <attribute name="foreground" value="#efef29292929"/>
+                      <attribute name="absolute-size" value="13000"/>
                     </attributes>
                   </object>
                   <packing>
-                    <property name="left_attach">1</property>
-                    <property name="top_attach">0</property>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEventBox">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <object class="GtkSeparator">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-              </object>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -592,13 +1001,14 @@
                 <property name="spacing">6</property>
                 <property name="layout_style">end</property>
                 <child>
-                  <object class="GtkButton" id="power_ok_button">
+                  <object class="GtkButton" id="pw_set_win_ok_button">
                     <property name="label">gtk-ok</property>
+                    <property name="name">dialog_button</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="power_button_clicked_cb" swapped="no"/>
+                    <signal name="clicked" handler="pw_set_win_button_clicked_cb" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -608,13 +1018,14 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="power_cancel_button">
+                  <object class="GtkButton" id="pw_set_win_cancel_button">
                     <property name="label">gtk-cancel</property>
+                    <property name="name">dialog_button</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="power_button_clicked_cb" swapped="no"/>
+                    <signal name="clicked" handler="pw_set_win_button_clicked_cb" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -629,14 +1040,11 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>
     </child>
-    <style>
-      <class name="background"/>
-    </style>
   </object>
   <object class="GtkOverlay" id="screen_overlay">
     <property name="name">screen</property>
@@ -649,7 +1057,13 @@
         <property name="can_focus">False</property>
         <property name="visible_window">False</property>
         <child>
-          <placeholder/>
+          <object class="GtkEventBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
         </child>
       </object>
       <packing>

@@ -74,17 +74,29 @@ msgstr "Enter your password"
 msgid "Enter your username"
 msgstr "Enter your username"
 
-msgid "Suspend"
-msgstr "Suspend"
+msgid "<b>Restart</b>"
+msgstr "<b>Restart</b>"
 
-msgid "Hibernate"
-msgstr "Hibernate"
+msgid "<b>Shutdown</b>"
+msgstr "<b>Shutdown</b>"
 
-msgid "Restart..."
-msgstr "Restart..."
+msgid "<b>Suspend</b>"
+msgstr "<b>Suspend</b>"
 
-msgid "Shut Down..."
-msgstr "Shut Down..."
+msgid "<b>Hibernate</b>"
+msgstr "<b>Hibernate</b>"
+
+msgid "System Restart"
+msgstr "System Restart"
+
+msgid "System Shutdown"
+msgstr "System Shutdown"
+
+msgid "System Suspend"
+msgstr "System Suspend"
+
+msgid "System Hibernate"
+msgstr "System Hibernate"
 
 msgid "Large Font"
 msgstr "Large Font"
@@ -94,3 +106,89 @@ msgstr "High Contrast"
 
 msgid "On Screen Keyboard"
 msgstr "On Screen Keyboard"
+
+msgid "Shutdown system"
+msgstr "Shut down the system."
+
+msgid "Restart system"
+msgstr "Restart the system."
+
+msgid "Suspend system"
+msgstr "Put the system into sleep mode."
+
+msgid "Hibernate system"
+msgstr "Put the system into hibernation mode."
+
+msgid "Changing Password"
+msgstr "Changing Password"
+
+msgid "Password Expiration"
+msgstr "Password Expiration"
+
+msgid "Temporary Password Warning"
+msgstr "Temporary Password Warning"
+
+msgid "Password Expiration Warning"
+msgstr "Password Expiration Warning"
+
+msgid "Your password has expired.\nPlease change your password immediately."
+msgstr "Your password has expired.\nPlease change your password immediately."
+
+# 주의, Linux-PAM에 존재하는 "You are required to change your password immediately" 의 번역의 앞부분과 동일해야함
+msgid "You are required to change your password immediately"
+msgstr "You are required to change your password immediately"
+
+msgid ""
+"Your password has been issued temporarily.\n"
+"For security reasons, please change your password immediately."
+msgstr "Your password has been issued temporarily.\nFor security reasons, please change your password immediately."
+
+msgid "Failure Of Changing Password"
+msgstr "Failure Of Changing Password"
+
+msgid "Failed to change password.\nPlease try again."
+msgstr "Failed to change password.\nPlease try again."
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Changing Password - [Step 1]"
+msgstr "Changing Password - [Step 1]"
+
+msgid "Changing Password - [Step 2]"
+msgstr "Changing Password - [Step 2]"
+
+msgid "Changing Password - [Step 3]"
+msgstr "Changing Password - [Step 3]"
+
+msgid "Enter current password :"
+msgstr "Enter current password :"
+
+msgid "Enter new password :"
+msgstr "Enter new password :"
+
+msgid "Retype new password :"
+msgstr "Retype new password :"
+
+# 주의, Linux-PAM에 존재하는 "(current) UNIX password" 의 번역과 동일해야함
+msgid "(current) UNIX password"
+msgstr "(current) UNIX password"
+
+# 주의, Linux-PAM에 존재하는 "Enter new UNIX password" 의 번역과 동일해야함
+msgid "Enter new UNIX password"
+msgstr "Enter new UNIX password"
+
+# 주의, Linux-PAM에 존재하는 "Retype new UNIX password" 의 번역과 동일해야함
+msgid "Retype new UNIX password"
+msgstr "Retype new UNIX password"
+
+#, c-format
+msgid "Your password will expire in %d day\nDo you want to change password now?"
+msgstr "Your password will expire in %d day\nDo you want to change password now?"
+
+#, c-format
+msgid "Your password will expire in %d days\nDo you want to change password now?"
+msgstr "Your password will expire in %d days\nDo you want to change password now?"
+
+msgid "Your password will expire soon\nDo you want to change password now?"
+msgstr "Your password will expire soon\nDo you want to change password now?"
