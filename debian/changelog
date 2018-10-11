@@ -1,3 +1,12 @@
+gooroom-greeter (0.1.4+grm1u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [9dcbaf4c] Added function to change password for online user
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 11 Oct 2018 11:14:57 +0900
+
 gooroom-greeter (0.1.3+grm1u1) unstable; urgency=medium
 
   [ cjheo ]
