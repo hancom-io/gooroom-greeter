@@ -1,3 +1,12 @@
+gooroom-greeter (0.1.5+grm1u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [a348123f] Fixed a bug when trying to log in with a password only
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 31 Jan 2019 12:36:25 +0900
+
 gooroom-greeter (0.1.4+grm1u1) unstable; urgency=medium
 
   [ cjheo ]
