@@ -192,3 +192,6 @@ msgstr "Your password will expire in %d days\nDo you want to change password now
 
 msgid "Your password will expire soon\nDo you want to change password now?"
 msgstr "Your password will expire soon\nDo you want to change password now?"
+
+msgid "Please enter username first"
+msgstr "Please enter username first"

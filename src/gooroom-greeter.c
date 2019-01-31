@@ -1136,7 +1136,6 @@ process_prompts (LightDMGreeter *greeter)
             gtk_widget_show (GTK_WIDGET (login_win_pw_entry));
             gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
             gtk_entry_set_text (login_win_pw_entry, "");
-            gtk_entry_set_visibility (login_win_pw_entry, message->type.prompt != LIGHTDM_PROMPT_TYPE_SECRET);
 #if 0
             if (message_label_is_empty () && password_prompted)
             {
@@ -1285,6 +1284,13 @@ login_win_username_entry_key_press_cb (GtkWidget *widget, GdkEventKey *event, gp
 void
 login_win_login_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
+    if (g_strcmp0 (gtk_entry_get_text (login_win_username_entry), "") == 0) {
+         set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, _("Please enter username first"));
+         gtk_entry_set_text (login_win_pw_entry, "");
+         gtk_widget_grab_focus (GTK_WIDGET (login_win_username_entry));
+         return;
+    }
+
     /* Reset to default screensaver values */
     if (lightdm_greeter_get_lock_hint (greeter))
         XSetScreenSaver (gdk_x11_display_get_xdisplay (gdk_display_get_default ()), timeout, interval, prefer_blanking, allow_exposures);

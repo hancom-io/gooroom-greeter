@@ -195,3 +195,6 @@ msgstr "패스워드 만료까지 %d일 남았습니다.\n지금 패스워드를
 
 msgid "Your password will expire soon\nDo you want to change password now?"
 msgstr "패스워드가 곧 만료됩니다.\n지금 패스워드를 변경하시겠습니까?"
+
+msgid "Please enter username first"
+msgstr "사용자 이름을 먼저 입력해 주십시오"
