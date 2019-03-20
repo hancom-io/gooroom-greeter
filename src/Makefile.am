@@ -5,6 +5,8 @@ gooroom_greeter_built_sources = \
 
 gooroom_greeter_SOURCES = \
 	$(gooroom_greeter_built_sources) \
+	indicator-button.h	\
+	indicator-button.c	\
 	gooroom-greeter.c \
 	greeterbackground.c \
 	greeterbackground.h \

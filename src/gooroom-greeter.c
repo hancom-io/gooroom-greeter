@@ -37,6 +37,7 @@
 
 #include <lightdm.h>
 
+#include "indicator-button.h"
 #include "greeterconfiguration.h"
 #include "greeterbackground.h"
 #include "gooroom-greeter-ui.h"
@@ -59,7 +60,7 @@ static GtkButton    *login_win_login_button;
 /* Panel */
 static GtkWidget    *panel_box;
 static GtkWidget    *btn_shutdown, *btn_restart, *btn_suspend, *btn_hibernate;
-static GtkWidget    *indicator_menubar;
+static GtkWidget    *indicator_box;
 
 /* Power window */
 static GtkWidget    *cmd_win;
@@ -162,10 +163,6 @@ struct SavedFocusData
     gint editable_pos;
 };
 
-/* Some default positions */
-//static const WindowPosition WINDOW_POS_CENTER   = {.x = { 50, +1, TRUE,   0}, .y = { 50, +1, TRUE,   0}, .use_size = FALSE};
-
-
 
 gpointer greeter_save_focus                    (GtkWidget* widget);
 void     greeter_restore_focus                 (const gpointer saved_data);
@@ -223,28 +220,32 @@ clock_timeout_thread (gpointer data)
 }
 
 static void
-on_indicator_item_shown_cb (GtkWidget *widget, gpointer data)
+on_indicator_button_toggled_cb (GtkToggleButton *button, gpointer user_data)
 {
-    GtkWidget *menuitem = GTK_WIDGET (data);
+	if (!gtk_toggle_button_get_active (button))
+		return;
 
-    gtk_widget_show (menuitem);
-}
+	IndicatorObjectEntry *entry;
 
-static void
-on_indicator_item_hidden_cb (GtkWidget *widget, gpointer data)
-{
-    GtkWidget *menuitem = GTK_WIDGET (data);
+	XfceIndicatorButton *indic_button = XFCE_INDICATOR_BUTTON (button);
 
-    gtk_widget_hide (menuitem);
-}
+	entry = xfce_indicator_button_get_entry (indic_button);
 
-static void
-on_indicator_item_sensitive_cb (GObject *obj, GParamSpec *pspec, gpointer data)
-{
-    g_return_if_fail (GTK_IS_WIDGET (obj));
-    g_return_if_fail (GTK_IS_WIDGET (data));
+	GList *l = NULL;
+	GList *children = gtk_container_get_children (GTK_CONTAINER (entry->menu));
+	for (l = children; l; l = l->next) {
+		GtkWidget *item = GTK_WIDGET (l->data);
+		if (item) {
+			g_signal_emit_by_name (item, "activate");
+			break;
+		}
+	}
 
-    gtk_widget_set_sensitive (GTK_WIDGET (data), gtk_widget_get_sensitive (GTK_WIDGET (obj)));
+	g_list_free (children);
+
+	g_signal_handlers_block_by_func (button, on_indicator_button_toggled_cb, user_data);
+	gtk_toggle_button_set_active (button, FALSE);
+	g_signal_handlers_unblock_by_func (button, on_indicator_button_toggled_cb, user_data);
 }
 
 static gboolean
@@ -271,95 +272,51 @@ find_app_indicators (const gchar *name)
 static void
 entry_added (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_data)
 {
-    g_return_if_fail (entry != NULL);
+	g_return_if_fail (entry != NULL);
 
-    if ((g_strcmp0 (entry->name_hint, "nm-applet") == 0) ||
+	if ((g_strcmp0 (entry->name_hint, "nm-applet") == 0) ||
         (find_app_indicators (entry->name_hint)))
-    {
-        gboolean indicator_item_visible = FALSE;
-        gboolean indicator_item_sensitive = FALSE;
+	{
+		GtkWidget *button;
+		const gchar *io_name;
 
-        GtkWidget *item = gtk_menu_item_new ();
+		io_name = g_object_get_data (G_OBJECT (io), "io-name");
 
-        g_object_set_data (G_OBJECT (item), "indicator-entry", entry);
+		button = xfce_indicator_button_new (io, io_name, entry);
 
-        GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 3);
-        gtk_container_add (GTK_CONTAINER (item), hbox);
-        gtk_widget_show (hbox);
+		if (entry->image != NULL)
+			xfce_indicator_button_set_image (XFCE_INDICATOR_BUTTON (button), entry->image);
 
-        if (entry->image != NULL) {
-            gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->image), FALSE, FALSE, 0);
-            if (gtk_widget_get_visible (GTK_WIDGET (entry->image))) {
-                indicator_item_visible = TRUE;
-            }
+		if (entry->label != NULL)
+			xfce_indicator_button_set_label (XFCE_INDICATOR_BUTTON (button), entry->label);
 
-            if (gtk_widget_get_sensitive (GTK_WIDGET (entry->image))) {
-                indicator_item_sensitive = TRUE;
-            }
+		if (g_strcmp0 (entry->name_hint, "gooroom-notice-applet") == 0) {
+			g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (on_indicator_button_toggled_cb), user_data);
+		} else {
+			if (entry->menu != NULL)
+				xfce_indicator_button_set_menu (XFCE_INDICATOR_BUTTON (button), entry->menu);
+		}
 
-            g_signal_connect (G_OBJECT (entry->image), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
-            g_signal_connect (G_OBJECT (entry->image), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
-            g_signal_connect (G_OBJECT (entry->image), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
-        }
-
-        if (entry->label != NULL) {
-            gtk_box_pack_start (GTK_BOX (hbox), GTK_WIDGET (entry->label), FALSE, FALSE, 0);
-            if (gtk_widget_get_visible (GTK_WIDGET (entry->label))) {
-                indicator_item_visible = TRUE;
-            }
-
-            if (gtk_widget_get_sensitive (GTK_WIDGET (entry->label))) {
-                indicator_item_sensitive = TRUE;
-            }
-
-            g_signal_connect (G_OBJECT (entry->label), "show", G_CALLBACK (on_indicator_item_shown_cb), item);
-            g_signal_connect (G_OBJECT (entry->label), "hide", G_CALLBACK (on_indicator_item_hidden_cb), item);
-            g_signal_connect (G_OBJECT (entry->label), "notify::sensitive", G_CALLBACK (on_indicator_item_sensitive_cb), item);
-        }
-
-        if (entry->menu != NULL) {
-            gtk_menu_item_set_submenu (GTK_MENU_ITEM (item), GTK_WIDGET (entry->menu));
-        }
-
-        gtk_menu_shell_append (GTK_MENU_SHELL (indicator_menubar), item);
-
-        if (indicator_item_visible)
-            gtk_widget_show (item);
-
-        gtk_widget_set_sensitive (item, indicator_item_sensitive);
-    }
-}
-
-static void
-entry_removed_cb (GtkWidget *widget, gpointer data)
-{
-    IndicatorObjectEntry *removed_entry = (IndicatorObjectEntry *)data;
-
-    IndicatorObjectEntry *entry = (IndicatorObjectEntry *)g_object_get_data (G_OBJECT (widget), "indicator-entry");
-
-    if (entry != removed_entry)
-        return;
-
-    if (entry->label != NULL) {
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->label), G_CALLBACK (on_indicator_item_shown_cb), widget);
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->label), G_CALLBACK (on_indicator_item_hidden_cb), widget);
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->label), G_CALLBACK (on_indicator_item_sensitive_cb), widget);
-    }
-    if (entry->image != NULL) {
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->image), G_CALLBACK (on_indicator_item_shown_cb), widget);
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->image), G_CALLBACK (on_indicator_item_hidden_cb), widget);
-        g_signal_handlers_disconnect_by_func (G_OBJECT (entry->image), G_CALLBACK (on_indicator_item_sensitive_cb), widget);
-    }
-
-    gtk_container_remove (GTK_CONTAINER (indicator_menubar), widget);
-
-    gtk_widget_destroy (widget);
+		gtk_box_pack_start (GTK_BOX (indicator_box), button, FALSE, TRUE, 0);
+		gtk_widget_show (button);
+	}
 }
 
 static void
 entry_removed (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_data)
 {
-    gtk_container_foreach (GTK_CONTAINER (indicator_menubar), entry_removed_cb, entry);
+	GList *children, *l = NULL;
+
+	children = gtk_container_get_children (GTK_CONTAINER (indicator_box));
+	for (l = children; l; l = l->next) {
+		XfceIndicatorButton *child = XFCE_INDICATOR_BUTTON (l->data);
+		if (child && (xfce_indicator_button_get_entry (child) == entry)) {
+			xfce_indicator_button_destroy (child);
+			break;
+		}
+	}
+
+	g_list_free (children);
 }
 
 static void
@@ -390,33 +347,23 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
 static void
 updevice_added_cb (UpDevice *device)
 {
-    gboolean is_present = FALSE;
-    guint device_type = UP_DEVICE_KIND_UNKNOWN;
+	gboolean is_present = FALSE;
+	guint device_type = UP_DEVICE_KIND_UNKNOWN;
 
-    /* hack, this depends on XFPM_DEVICE_TYPE_* being in sync with UP_DEVICE_KIND_* */
-    g_object_get (device, "kind", &device_type, NULL);
-    g_object_get (device, "is-present", &is_present, NULL);
+	/* hack, this depends on XFPM_DEVICE_TYPE_* being in sync with UP_DEVICE_KIND_* */
+	g_object_get (device, "kind", &device_type, NULL);
+	g_object_get (device, "is-present", &is_present, NULL);
 
-    if (device_type == UP_DEVICE_KIND_BATTERY && is_present) {
-       GtkWidget *item = gtk_separator_menu_item_new ();
+	if (device_type == UP_DEVICE_KIND_BATTERY && is_present) {
+		GtkWidget *image = gtk_image_new_from_icon_name ("battery-full-symbolic", GTK_ICON_SIZE_BUTTON);
+		gtk_box_pack_start (GTK_BOX (indicator_box), image, FALSE, FALSE, 0);
+		gtk_widget_show (image);
 
-       g_object_set_data (G_OBJECT (item), "updevice", device);
+		g_object_set_data (G_OBJECT (image), "updevice", device);
 
-       GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-       gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-       gtk_container_add (GTK_CONTAINER (item), hbox);
-       gtk_widget_show (hbox);
-   
-       GtkWidget *image = gtk_image_new_from_icon_name ("battery-full-symbolic", GTK_ICON_SIZE_BUTTON);
-       gtk_box_pack_start (GTK_BOX (hbox), image, FALSE, FALSE, 0);
-       gtk_widget_show (image);
-   
-       gtk_menu_shell_append (GTK_MENU_SHELL (indicator_menubar), item);
-       gtk_widget_show_all (item);
-
-       on_power_device_changed_cb (device, NULL, image);
-       g_signal_connect (device, "notify", G_CALLBACK (on_power_device_changed_cb), image);
-    }
+		on_power_device_changed_cb (device, NULL, image);
+		g_signal_connect (device, "notify", G_CALLBACK (on_power_device_changed_cb), image);
+	}
 }
 
 static void
@@ -428,22 +375,22 @@ on_power_device_added_cb (UpClient *upclient, UpDevice *device, gpointer data)
 static void
 updevice_removed_cb (GtkWidget *widget, gpointer data)
 {
-    UpDevice *removed_device = (UpDevice *)data;
+	UpDevice *removed_device = (UpDevice *)data;
 
-    UpDevice *device = (UpDevice*)g_object_get_data (G_OBJECT (widget), "updevice");
+	UpDevice *device = (UpDevice*)g_object_get_data (G_OBJECT (widget), "updevice");
 
-    if (device != removed_device)
-        return;
+	if (!device || (device != removed_device))
+		return;
 
-    gtk_container_remove (GTK_CONTAINER (indicator_menubar), widget);
+	gtk_container_remove (GTK_CONTAINER (indicator_box), widget);
 
-    gtk_widget_destroy (widget);
+	gtk_widget_destroy (widget);
 }
 
 static void
 on_power_device_removed_cb (UpClient *upclient, UpDevice *device, gpointer data)
 {
-    gtk_container_foreach (GTK_CONTAINER (indicator_menubar), updevice_removed_cb, device);
+	gtk_container_foreach (GTK_CONTAINER (indicator_box), updevice_removed_cb, device);
 }
 
 static void
@@ -599,29 +546,31 @@ on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 static void
 load_module (const gchar *name)
 {
-    gchar                *fullpath;
-    IndicatorObject      *io;
-    GList                *entries, *entry;
-    IndicatorObjectEntry *entrydata;
+	gchar                *fullpath;
+	IndicatorObject      *io;
+	GList                *entries, *entry;
+	IndicatorObjectEntry *entrydata;
 
-    g_return_if_fail (name != NULL);
+	g_return_if_fail (name != NULL);
 
-    fullpath = g_build_filename (INDICATOR_DIR, name, NULL);
-    io = indicator_object_new_from_file (fullpath);
-    g_free (fullpath);
+	fullpath = g_build_filename (INDICATOR_DIR, name, NULL);
+	io = indicator_object_new_from_file (fullpath);
+	g_free (fullpath);
 
-    g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_ADDED, G_CALLBACK (entry_added), NULL);
-    g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
+	g_object_set_data (G_OBJECT (io), "io-name", g_strdup (name));
 
-    entries = indicator_object_get_entries (io);
-    entry = NULL;
+	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_ADDED, G_CALLBACK (entry_added), NULL);
+	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
 
-    for (entry = entries; entry != NULL; entry = g_list_next(entry)) {
-        entrydata = (IndicatorObjectEntry *)entry->data;
-        entry_added (io, entrydata, NULL);
-    }
+	entries = indicator_object_get_entries (io);
+	entry = NULL;
 
-    g_list_free (entries);
+	for (entry = entries; entry != NULL; entry = g_list_next(entry)) {
+		entrydata = (IndicatorObjectEntry *)entry->data;
+		entry_added (io, entrydata, NULL);
+	}
+
+	g_list_free (entries);
 }
 
 static void
@@ -667,17 +616,13 @@ other_indicator_application_start (void)
 static void
 load_clock_indicator (void)
 {
-    GtkWidget *item = gtk_separator_menu_item_new ();
+	GtkWidget *clock_label = gtk_label_new ("");
+	gtk_box_pack_start (GTK_BOX (indicator_box), clock_label, FALSE, FALSE, 0);
+	gtk_widget_show_all (clock_label);
 
-    gtk_menu_item_set_label (GTK_MENU_ITEM (item), "");
-    GtkWidget *clock_label = gtk_bin_get_child (GTK_BIN (item));
-
-    gtk_menu_shell_append (GTK_MENU_SHELL (indicator_menubar), item);
-    gtk_widget_show_all (item);
-
-    /* update clock */
-    clock_timeout_thread (clock_label);
-    gdk_threads_add_timeout (1000, (GSourceFunc) clock_timeout_thread, clock_label);
+	/* update clock */
+	clock_timeout_thread (clock_label);
+	gdk_threads_add_timeout (1000, (GSourceFunc) clock_timeout_thread, clock_label);
 }
 
 static void
@@ -707,21 +652,23 @@ load_battery_indicator (void)
 static void
 load_application_indicator (void)
 {
-    /* load application indicator */
-    if (g_file_test (INDICATOR_DIR, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR))) {
-        GDir *dir = g_dir_open (INDICATOR_DIR, 0, NULL);
+	/* load application indicator */
+	if (g_file_test (INDICATOR_DIR, (G_FILE_TEST_EXISTS | G_FILE_TEST_IS_DIR))) {
+		GDir *dir = g_dir_open (INDICATOR_DIR, 0, NULL);
 
-        const gchar *name;
-        while ((name = g_dir_read_name (dir)) != NULL) {
-            if (!g_str_has_suffix (name, G_MODULE_SUFFIX))
-                continue;
-            
-            if (!g_str_equal (name, "libapplication.so"))
-                continue;
+		const gchar *name;
+		while ((name = g_dir_read_name (dir)) != NULL) {
+			if (!g_str_has_suffix (name, G_MODULE_SUFFIX))
+				continue;
 
-            load_module (name);
-        }
-    }
+			if (!g_str_equal (name, "libapplication.so"))
+				continue;
+
+			load_module (name);
+		}
+
+		g_dir_close (dir);
+	}
 }
 
 static void
@@ -1723,16 +1670,16 @@ main (int argc, char **argv)
 
     g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
 
-//    GPid pid = 0;
-//    gchar **arr_cmd = NULL;
-//    gchar *cmd = "/usr/lib/at-spi2-core/at-spi-bus-launcher --launch-immediately";
-//
-//    g_shell_parse_argv (cmd, NULL, &arr_cmd, NULL);
-//
-//    g_spawn_async (NULL, arr_cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &pid, NULL);
-//
-//    g_strfreev (arr_cmd);
-//    arr_cmd = NULL;
+    GPid pid = 0;
+    gchar **arr_cmd = NULL;
+    gchar *cmd = "/usr/lib/at-spi2-core/at-spi-bus-launcher --launch-immediately";
+
+    g_shell_parse_argv (cmd, NULL, &arr_cmd, NULL);
+
+    g_spawn_async (NULL, arr_cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &pid, NULL);
+
+    g_strfreev (arr_cmd);
+    arr_cmd = NULL;
 
     /* init gtk */
     gtk_init (&argc, &argv);
@@ -1844,7 +1791,7 @@ main (int argc, char **argv)
     btn_hibernate = GTK_WIDGET (gtk_builder_get_object (builder, "btn_hibernate"));
 
     /* Right menu in panel */
-    indicator_menubar = GTK_WIDGET (gtk_builder_get_object (builder, "indicator_menubar"));
+    indicator_box = GTK_WIDGET (gtk_builder_get_object (builder, "indicator_box"));
 
     /* Power dialog */
     cmd_win = GTK_WIDGET (gtk_builder_get_object (builder, "cmd_win"));
@@ -1882,7 +1829,7 @@ main (int argc, char **argv)
     gtk_overlay_add_overlay (screen_overlay, msg_win);
     gtk_overlay_add_overlay (screen_overlay, panel_box);
 
-    clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%F        %p %I:%M");
+    clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%F      %p %I:%M");
     css_provider = gtk_css_provider_new ();
     gchar *css_path = g_build_filename (PKGDATA_DIR, "themes", "gooroom-greeter.css", NULL);
     gtk_css_provider_load_from_file (css_provider, g_file_new_for_path (css_path), NULL);
@@ -1967,11 +1914,6 @@ main (int argc, char **argv)
         gtk_button_set_label (login_win_login_button, _("Log In"));
         start_authentication ("*other");
     }
-
-    /* Windows positions */
-//    value = config_get_string (NULL, CONFIG_KEY_POSITION, NULL);
-//    g_object_set_data_full (G_OBJECT (login_win), WINDOW_DATA_POSITION, str_to_position (value, &WINDOW_POS_CENTER), g_free);
-//    g_free (value);
 
     gtk_widget_set_halign (login_win, GTK_ALIGN_CENTER);
     gtk_widget_set_valign (login_win, GTK_ALIGN_CENTER);
