@@ -574,6 +574,14 @@ load_module (const gchar *name)
 }
 
 static void
+notification_service_start (void)
+{
+	const gchar *argv[] = {"/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd", NULL};
+
+	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+}
+
+static void
 indicator_application_service_start (void)
 {
     gchar **argv = NULL;
@@ -1943,6 +1951,9 @@ main (int argc, char **argv)
 
     cur_show_win = login_win;
     changing_password = FALSE;
+
+	/* Start the xfce notification service */
+	notification_service_start ();
 
     /* Start the indicator applications service */
     indicator_application_service_start ();
