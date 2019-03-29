@@ -1,3 +1,17 @@
+gooroom-greeter (0.2.1+grm1u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [7fd06683] A bug that occurrs when trying to login with password only was revised again
+  * [e1b4ac11] Replaced indicator's holder from menubar to horizontal box
+  * [b2385020] Start notification daemon for application that use notify service
+
+  [ DongHun Lee ]
+  * [9d605411] Added gooroom-notice-applet at gooroom-greeter.conf
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 29 Mar 2019 11:53:58 +0900
+
 gooroom-greeter (0.1.5+grm1u2) unstable; urgency=medium
 
   [ jongkyung.woo ]
