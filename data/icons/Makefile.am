@@ -4,6 +4,7 @@ EXTRA_DIST =	\
 actions_icondir = $(datadir)/icons/hicolor/scalable/actions
 
 actions_icon_DATA =	\
+	gooroom-greeter-home-symbolic.svg	\
 	gooroom-greeter-hibernate-symbolic.svg	\
 	gooroom-greeter-restart-symbolic.svg	\
 	gooroom-greeter-shutdown-symbolic.svg	\

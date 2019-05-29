@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#
+# URL's scopes: profile+email
+# Need to FIXME
+#
+
+xhost +
+export SHELL=/bin/bash
+pkexec --user $1 --disable-internal-agent chromium $2 $3 $4 $5 $6
+xhost -

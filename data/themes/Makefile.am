@@ -1,4 +1,4 @@
-themesdir = $(datadir)/gooroom-greeter/themes
+themesdir = $(pkgdatadir)/themes
 dist_themes_DATA = gooroom-greeter.css
 
 assetsdir = $(themesdir)/assets

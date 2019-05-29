@@ -24,7 +24,10 @@
 #include <locale.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
+#include <glib.h>
 #include <glib/gi18n.h>
+#include <glib/gstdio.h>
+#include <gio/gio.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <glib.h>
@@ -33,7 +36,14 @@
 #include <signal.h>
 #include <upower.h>
 
-#include <libindicator/indicator-object.h>
+#include <pwd.h>
+#include <grp.h>
+#include <sys/types.h>
+
+
+#include <libayatana-ido/libayatana-ido.h>
+#include <libayatana-indicator/indicator-ng.h>
+#include <libayatana-indicator/indicator-object.h>
 
 #include <lightdm.h>
 
@@ -43,10 +53,35 @@
 #include "gooroom-greeter-ui.h"
 
 
+
 static LightDMGreeter *greeter;
 
 /* Screen window */
 static GtkOverlay   *screen_overlay;
+
+/* Cloud Login Window */
+static GtkWidget *cloud_win;
+static GtkWidget *stack_cloud_win;
+static GtkWidget *img_cloud_win_logo;
+static GtkWidget *img_cloud_win_naver;
+static GtkWidget *img_cloud_win_google;
+static GtkWidget *rdo_login_google;
+static GtkWidget *rdo_login_gooroom;
+static GtkWidget *rdo_login_naver;
+static GtkWidget *btn_cloud_win_step1_next;
+static GtkWidget *btn_cloud_win_step2_next;
+static GtkWidget *btn_cloud_win_step2_prev;
+static GtkWidget *btn_register_account;
+static GtkWidget *listbox_cloud_user;
+static GtkWidget *webview_dialog;
+static GtkWidget *webview_dialog_box;
+
+    /* Account Registration Window */
+static GtkWidget *user_reg_win;
+static GtkWidget *user_reg_win_ent;
+static GtkWidget *user_reg_win_err_lbl;
+static GtkWidget *user_reg_win_ok_btn;
+static GtkWidget *user_reg_win_cancel_btn;
 
 /* Login window */
 static GtkWidget    *login_win;
@@ -59,7 +94,7 @@ static GtkButton    *login_win_login_button;
 
 /* Panel */
 static GtkWidget    *panel_box;
-static GtkWidget    *btn_shutdown, *btn_restart, *btn_suspend, *btn_hibernate;
+static GtkWidget    *btn_shutdown, *btn_restart, *btn_suspend, *btn_hibernate, *btn_home;
 static GtkWidget    *indicator_box;
 
 /* Power window */
@@ -85,6 +120,7 @@ static GtkWidget    *cur_show_win;
 static GtkWidget    *cur_focused_widget;
 static gboolean      changing_password;
 
+static GDBusProxy   *gcl_proxy;
 
 /* Clock */
 static gchar *clock_format;
@@ -117,9 +153,18 @@ static const gchar *CMD_WIN_DATA = "cmd-win-data";
 static const gchar *MSG_WIN_DATA = "msg-win-data";
 static const gchar *ASK_WIN_DATA = "ask-win-data";
 
-//static const gchar *WINDOW_DATA_POSITION = "window-position"; /* <WindowPosition*> */
+static int login_type = 0;
+
+static gboolean allow_cloud_login = FALSE;
 
 enum {
+	LOGIN_GOOROOM,
+	LOGIN_GOOGLE,
+	LOGIN_NAVER
+};
+
+enum {
+    SYSTEM_HOME,
     SYSTEM_SHUTDOWN,
     SYSTEM_RESTART,
     SYSTEM_SUSPEND,
@@ -164,6 +209,7 @@ struct SavedFocusData
 };
 
 
+
 gpointer greeter_save_focus                    (GtkWidget* widget);
 void     greeter_restore_focus                 (const gpointer saved_data);
 
@@ -196,6 +242,47 @@ gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *
 
 static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
+
+static void
+killall_chromium (const char *user)
+{
+	gchar *cmd = NULL;
+
+	cmd = g_strdup_printf ("%s %s", CHROMIUM_KILLALL, user);
+
+	g_spawn_command_line_async (cmd, NULL);
+
+	g_free (cmd);
+}
+
+static gint
+get_user_account_type (const char *user)
+{
+	gint ret = -1;
+	struct passwd *user_entry = getpwnam (user);
+
+	if (!user_entry)
+		return -1;
+
+	char **tokens = g_strsplit (user_entry->pw_gecos, ",", -1);
+	if (tokens && (g_strv_length (tokens) > 4)) {
+		if (tokens[4]) {
+			if (g_strcmp0 (tokens[4], "gooroom-online-account") == 0) {
+				ret = LOGIN_GOOROOM;
+			} else if (g_strcmp0 (tokens[4], "google-account") == 0) {
+				ret = LOGIN_GOOGLE;
+			} else if (g_strcmp0 (tokens[4], "naver-account") == 0) {
+				ret = LOGIN_NAVER;
+			} else {
+				ret = -1;
+			}
+		}
+	}
+
+	g_strfreev (tokens);
+
+	return ret;
+}
 
 /* Clock */
 static gboolean
@@ -283,6 +370,7 @@ entry_added (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_dat
 		io_name = g_object_get_data (G_OBJECT (io), "io-name");
 
 		button = xfce_indicator_button_new (io, io_name, entry);
+		gtk_box_pack_start (GTK_BOX (indicator_box), button, FALSE, FALSE, 0);
 
 		if (entry->image != NULL)
 			xfce_indicator_button_set_image (XFCE_INDICATOR_BUTTON (button), entry->image);
@@ -297,7 +385,6 @@ entry_added (IndicatorObject *io, IndicatorObjectEntry *entry, gpointer user_dat
 				xfce_indicator_button_set_menu (XFCE_INDICATOR_BUTTON (button), entry->menu);
 		}
 
-		gtk_box_pack_start (GTK_BOX (indicator_box), button, FALSE, TRUE, 0);
 		gtk_widget_show (button);
 	}
 }
@@ -347,14 +434,14 @@ on_power_device_changed_cb (UpDevice *device, GParamSpec *pspec, gpointer data)
 static void
 updevice_added_cb (UpDevice *device)
 {
-	gboolean is_present = FALSE;
-	guint device_type = UP_DEVICE_KIND_UNKNOWN;
+    gboolean is_present = FALSE;
+    guint device_type = UP_DEVICE_KIND_UNKNOWN;
 
-	/* hack, this depends on XFPM_DEVICE_TYPE_* being in sync with UP_DEVICE_KIND_* */
-	g_object_get (device, "kind", &device_type, NULL);
-	g_object_get (device, "is-present", &is_present, NULL);
+    /* hack, this depends on XFPM_DEVICE_TYPE_* being in sync with UP_DEVICE_KIND_* */
+    g_object_get (device, "kind", &device_type, NULL);
+    g_object_get (device, "is-present", &is_present, NULL);
 
-	if (device_type == UP_DEVICE_KIND_BATTERY && is_present) {
+    if (device_type == UP_DEVICE_KIND_BATTERY && is_present) {
 		GtkWidget *image = gtk_image_new_from_icon_name ("battery-full-symbolic", GTK_ICON_SIZE_BUTTON);
 		gtk_box_pack_start (GTK_BOX (indicator_box), image, FALSE, FALSE, 0);
 		gtk_widget_show (image);
@@ -363,7 +450,7 @@ updevice_added_cb (UpDevice *device)
 
 		on_power_device_changed_cb (device, NULL, image);
 		g_signal_connect (device, "notify", G_CALLBACK (on_power_device_changed_cb), image);
-	}
+    }
 }
 
 static void
@@ -375,22 +462,22 @@ on_power_device_added_cb (UpClient *upclient, UpDevice *device, gpointer data)
 static void
 updevice_removed_cb (GtkWidget *widget, gpointer data)
 {
-	UpDevice *removed_device = (UpDevice *)data;
+    UpDevice *removed_device = (UpDevice *)data;
 
-	UpDevice *device = (UpDevice*)g_object_get_data (G_OBJECT (widget), "updevice");
+    UpDevice *device = (UpDevice*)g_object_get_data (G_OBJECT (widget), "updevice");
 
-	if (!device || (device != removed_device))
-		return;
+    if (device != removed_device)
+        return;
 
-	gtk_container_remove (GTK_CONTAINER (indicator_box), widget);
+    gtk_container_remove (GTK_CONTAINER (indicator_box), widget);
 
-	gtk_widget_destroy (widget);
+    gtk_widget_destroy (widget);
 }
 
 static void
 on_power_device_removed_cb (UpClient *upclient, UpDevice *device, gpointer data)
 {
-	gtk_container_foreach (GTK_CONTAINER (indicator_box), updevice_removed_cb, device);
+    gtk_container_foreach (GTK_CONTAINER (indicator_box), updevice_removed_cb, device);
 }
 
 static void
@@ -401,6 +488,8 @@ hide_all_windows (void)
     gtk_widget_hide (cmd_win);
     gtk_widget_hide (login_win);
     gtk_widget_hide (pw_set_win);
+    gtk_widget_hide (cloud_win);
+    gtk_widget_hide (user_reg_win);
 }
 
 static gboolean
@@ -508,85 +597,65 @@ show_power_prompt (const gchar* icon, const gchar* title, const gchar* message, 
 static void
 on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
-    const char *img, *title, *msg;
-    int type = GPOINTER_TO_INT (user_data);
+	const char *img, *title, *msg;
+	int type = GPOINTER_TO_INT (user_data);
 
-    switch (type) {
-        case SYSTEM_SHUTDOWN:
-            img = "gooroom-greeter-shutdown-symbolic";
-            title = _("System Shutdown");
-            msg = _("Are you sure you want to close all programs and shut down the computer?");
-        break;
+	switch (type) {
+		case SYSTEM_HOME:
+		{
+			GtkListBoxRow *row = gtk_list_box_get_selected_row (GTK_LIST_BOX (listbox_cloud_user));
+			if (!row) {
+				row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (listbox_cloud_user), 0);
+			}
 
-        case SYSTEM_RESTART:
-            img = "gooroom-greeter-restart-symbolic";
-            title = _("System Restart");
-            msg = _("Are you sure you want to close all programs and restart the computer?");
-        break;
+			if (row) {
+				gchar *id = g_object_get_data (G_OBJECT (row), "name");
+				killall_chromium (id);
+			}
 
-        case SYSTEM_SUSPEND:
-            img = "gooroom-greeter-suspend-symbolic";
-            title = _("System Suspend");
-            msg = _("Are you sure you want to suspend the computer?");
-        break;
+			hide_all_windows ();
+			gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
+			gtk_widget_show (cloud_win);
+			cur_show_win = cloud_win;
+		}
+		return;
 
-        case SYSTEM_HIBERNATE:
-            img = "gooroom-greeter-hibernate-symbolic";
-            title = _("System Hibernate");
-            msg = _("Are you sure you want to hibernate the computer?");
-        break;
+		case SYSTEM_SHUTDOWN:
+			img = "gooroom-greeter-shutdown-symbolic";
+			title = _("System Shutdown");
+			msg = _("Are you sure you want to close all programs and shut down the computer?");
+		break;
 
-        default:
-        return;
-    }
+		case SYSTEM_RESTART:
+			img = "gooroom-greeter-restart-symbolic";
+			title = _("System Restart");
+			msg = _("Are you sure you want to close all programs and restart the computer?");
+		break;
 
-    show_power_prompt (img, title, msg, type);
-}
+		case SYSTEM_SUSPEND:
+			img = "gooroom-greeter-suspend-symbolic";
+			title = _("System Suspend");
+			msg = _("Are you sure you want to suspend the computer?");
+		break;
 
-static void
-load_module (const gchar *name)
-{
-	gchar                *fullpath;
-	IndicatorObject      *io;
-	GList                *entries, *entry;
-	IndicatorObjectEntry *entrydata;
+		case SYSTEM_HIBERNATE:
+			img = "gooroom-greeter-hibernate-symbolic";
+			title = _("System Hibernate");
+			msg = _("Are you sure you want to hibernate the computer?");
+		break;
 
-	g_return_if_fail (name != NULL);
-
-	fullpath = g_build_filename (INDICATOR_DIR, name, NULL);
-	io = indicator_object_new_from_file (fullpath);
-	g_free (fullpath);
-
-	g_object_set_data (G_OBJECT (io), "io-name", g_strdup (name));
-
-	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_ADDED, G_CALLBACK (entry_added), NULL);
-	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
-
-	entries = indicator_object_get_entries (io);
-	entry = NULL;
-
-	for (entry = entries; entry != NULL; entry = g_list_next(entry)) {
-		entrydata = (IndicatorObjectEntry *)entry->data;
-		entry_added (io, entrydata, NULL);
+		default:
+		return;
 	}
 
-	g_list_free (entries);
+	show_power_prompt (img, title, msg, type);
 }
 
 static void
-notification_service_start (void)
-{
-	const gchar *argv[] = {"/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd", NULL};
-
-	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-}
-
-static void
-indicator_application_service_start (void)
+notify_service_start (void)
 {
     gchar **argv = NULL;
-    const gchar *cmd = "systemctl --user start indicator-application";
-    g_shell_parse_argv (cmd, NULL, &argv, NULL);
+    g_shell_parse_argv (GOOROOM_NOTIFYD, NULL, &argv, NULL);
 
     g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -594,31 +663,43 @@ indicator_application_service_start (void)
 }
 
 static void
+indicator_application_service_start (void)
+{
+	gchar **argv = NULL;
+	const gchar *cmd = "systemctl --user start ayatana-indicator-application";
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+
+	g_strfreev (argv);
+}
+
+static void
 network_indicator_application_start (void)
 {
-    g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
-    g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
+	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications false", NULL, NULL, NULL, NULL);
+	g_spawn_command_line_sync ("/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications false", NULL, NULL, NULL, NULL);
 
-    /* Make nm-applet hide items the user does not have permissions to interact with */
-    g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
+	/* Make nm-applet hide items the user does not have permissions to interact with */
+	g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
 
-    g_spawn_command_line_async ("nm-applet", NULL);
+	g_spawn_command_line_async ("nm-applet --indicator", NULL);
 }
 
 static void
 other_indicator_application_start (void)
 {
-    gchar **app_indicators = config_get_string_list (NULL, "app-indicators", NULL);
+	gchar **app_indicators = config_get_string_list (NULL, "app-indicators", NULL);
 
-    if (!app_indicators)
-        return;
+	if (!app_indicators)
+		return;
 
-    guint i;
-    for (i = 0; app_indicators[i] != NULL; i++) {
-        g_spawn_command_line_async (app_indicators[i], NULL);
-    }
+	guint i;
+	for (i = 0; app_indicators[i] != NULL; i++) {
+		g_spawn_command_line_async (app_indicators[i], NULL);
+	}
 
-    g_strfreev (app_indicators);
+	g_strfreev (app_indicators);
 }
 
 static void
@@ -642,7 +723,7 @@ load_battery_indicator (void)
 
     upower = up_client_new ();
 
-    array = up_client_get_devices (upower);
+    array = up_client_get_devices2 (upower);
 
     if (array) {
         for ( i = 0; i < array->len; i++) {
@@ -658,6 +739,35 @@ load_battery_indicator (void)
 }
 
 static void
+load_module (const gchar *name)
+{
+	gchar                *path;
+	IndicatorObject      *io;
+	GList                *entries, *entry;
+	IndicatorObjectEntry *entrydata;
+
+	path = g_build_filename (INDICATOR_DIR, name, NULL);
+	io = indicator_object_new_from_file (path);
+	g_free (path);
+
+	g_object_set_data (G_OBJECT (io), "io-name", g_strdup (name));
+
+	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_ADDED, G_CALLBACK (entry_added), NULL);
+	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
+
+	entries = indicator_object_get_entries (io);
+	entry = NULL;
+
+	for (entry = entries; entry != NULL; entry = g_list_next(entry)) {
+		entrydata = (IndicatorObjectEntry *)entry->data;
+		entry_added (io, entrydata, NULL);
+	}
+
+	g_list_free (entries);
+}
+
+
+static void
 load_application_indicator (void)
 {
 	/* load application indicator */
@@ -666,15 +776,14 @@ load_application_indicator (void)
 
 		const gchar *name;
 		while ((name = g_dir_read_name (dir)) != NULL) {
-			if (!g_str_has_suffix (name, G_MODULE_SUFFIX))
+			if (!name || !g_str_has_suffix (name, G_MODULE_SUFFIX))
 				continue;
 
-			if (!g_str_equal (name, "libapplication.so"))
+			if (!g_str_equal (name, "libayatana-application.so"))
 				continue;
 
 			load_module (name);
 		}
-
 		g_dir_close (dir);
 	}
 }
@@ -682,9 +791,9 @@ load_application_indicator (void)
 static void
 load_indicators (void)
 {
-    load_clock_indicator ();
-    load_battery_indicator ();
-    load_application_indicator ();
+	load_clock_indicator ();
+	load_battery_indicator ();
+	load_application_indicator ();
 }
 
 static void
@@ -699,6 +808,7 @@ load_commands (void)
     g_signal_connect (G_OBJECT (btn_restart), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_RESTART));
     g_signal_connect (G_OBJECT (btn_suspend), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_SUSPEND));
     g_signal_connect (G_OBJECT (btn_hibernate), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_HIBERNATE));
+    g_signal_connect (G_OBJECT (btn_home), "clicked", G_CALLBACK (on_command_button_clicked_cb), GINT_TO_POINTER (SYSTEM_HOME));
 }
 
 static void
@@ -778,7 +888,7 @@ set_message_label (LightDMMessageType type, const gchar *text)
 }
 
 static void
-show_login_window (void)
+show_login_window (GtkEntry *focus_widget)
 {
     hide_all_windows ();
     gtk_widget_show (login_win);
@@ -786,100 +896,9 @@ show_login_window (void)
     cur_show_win = login_win;
 
     gtk_entry_set_text (login_win_pw_entry, "");
-    gtk_widget_grab_focus (GTK_WIDGET (login_win_pw_entry));
+    gtk_widget_grab_focus (GTK_WIDGET (focus_widget));
     set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, NULL);
 }
-
-#if 0
-/* Handling window position */
-static gboolean
-read_position_from_str (const gchar *s, DimensionPosition *x)
-{
-    DimensionPosition p;
-    gchar *end = NULL;
-    gchar **parts = g_strsplit (s, ",", 2);
-    if (parts[0])
-    {
-        p.value = g_ascii_strtoll (parts[0], &end, 10);
-        p.percentage = end && end[0] == '%';
-        p.sign = (p.value < 0 || (p.value == 0 && parts[0][0] == '-')) ? -1 : +1;
-        if (p.value < 0)
-            p.value *= -1;
-        if (g_strcmp0(parts[1], "start") == 0)
-            p.anchor = -1;
-        else if (g_strcmp0(parts[1], "center") == 0)
-            p.anchor = 0;
-        else if (g_strcmp0(parts[1], "end") == 0)
-            p.anchor = +1;
-        else
-            p.anchor = p.sign > 0 ? -1 : +1;
-        *x = p;
-    }
-    else
-        x = NULL;
-    g_strfreev (parts);
-    return x != NULL;
-}
-
-static WindowPosition*
-str_to_position (const gchar *str, const WindowPosition *default_value)
-{
-    WindowPosition* pos = g_new0 (WindowPosition, 1);
-    *pos = *default_value;
-
-    if (str)
-    {
-        gchar *value = g_strdup (str);
-        gchar *x = value;
-        gchar *y = strchr (value, ' ');
-        if (y)
-            (y++)[0] = '\0';
-
-        if (read_position_from_str (x, &pos->x))
-            /* If there is no y-part then y = x */
-            if (!y || !read_position_from_str (y, &pos->y))
-                pos->y = pos->x;
-
-        gchar *size_delim = strchr (y ? y : x, ';');
-        if (size_delim)
-        {
-            gchar *x = size_delim + 1;
-            if (read_position_from_str (x, &pos->width))
-            {
-                y = strchr (x, ' ');
-                if (y)
-                    (y++)[0] = '\0';
-                if (!y || !read_position_from_str (y, &pos->height))
-                    if (!default_value->use_size)
-                        pos->height = pos->width;
-                pos->use_size = TRUE;
-            }
-        }
-
-        g_free (value);
-    }
-
-    return pos;
-}
-
-static gint
-get_absolute_position (const DimensionPosition *p, gint screen, gint window)
-{
-    gint x = p->percentage ? (screen*p->value)/100 : p->value;
-    x = p->sign < 0 ? screen - x : x;
-    if (p->anchor > 0)
-        x -= window;
-    else if (p->anchor == 0)
-        x -= window/2;
-
-    if (x < 0)                     /* Offscreen: left/top */
-        return 0;
-    else if (x + window > screen)  /* Offscreen: right/bottom */
-        return screen - window;
-    else
-        return x;
-}
-#endif
 
 /* Message label */
 static gboolean
@@ -977,9 +996,8 @@ pam_message_finalize (PAMConversationMessage *message)
 static void
 process_prompts (LightDMGreeter *greeter)
 {
-    if (!pending_questions) {
+    if (!pending_questions)
         return;
-    }
 
     /* always allow the user to change username again */
     gtk_widget_set_sensitive (GTK_WIDGET (login_win_username_entry), TRUE);
@@ -1013,7 +1031,13 @@ process_prompts (LightDMGreeter *greeter)
         const gchar *filter_msg1 = "You are required to change your password immediately";
         const gchar *filter_msg2 = _("You are required to change your password immediately");
         const gchar *filter_msg3 = "Temporary Password";
-        const gchar *filter_msg4 = "Until Password Expiration";
+        const gchar *filter_msg4 = "Password Expiration Warning";
+        const gchar *filter_msg5 = "Account Expiration Warning";
+        const gchar *filter_msg6 = "Duplicate Login Notification";
+        const gchar *filter_msg7 = "Authentication Failure";
+        const gchar *filter_msg8 = "Account Locking";
+        const gchar *filter_msg9 = "Account Expiration";
+
         if ((strstr (message->text, filter_msg1) != NULL) ||
              strstr (message->text, filter_msg2) != NULL) {
             changing_password = TRUE;
@@ -1021,33 +1045,93 @@ process_prompts (LightDMGreeter *greeter)
                 _("Your password has expired.\nPlease change your password immediately."),
                 _("Changing Password"), _("Cancel"), "password_expiration");
             continue;
-        } else if (strstr (message->text, filter_msg3) != NULL) {
+        } else if (g_str_has_prefix (message->text, filter_msg3)) {
             changing_password = TRUE;
             show_ask_window (_("Temporary Password Warning"),
                 _("Your password has been issued temporarily.\nFor security reasons, please change your password immediately."),
                 _("Changing Password"), _("Cancel"), "password_expiration");
             continue;
-        } else if (strstr (message->text, filter_msg4) != NULL) {
-            gchar *msg = NULL;
-            gchar **tokens = g_strsplit (message->text, ":", -1);
-            if (tokens[1]) {
-                int daysleft = atoi (tokens[1]);
-                if (daysleft) {
-                    msg = g_strdup_printf (_("Your password will expire in %d day\nDo you want to change password now?"), daysleft);
-                } else {
-                    msg = g_strdup_printf (_("Your password will expire in %d days\nDo you want to change password now?"), daysleft);
-                }
-            } else {
-                msg = g_strdup (_("Your password will expire soon\nDo you want to change password now?"));
-            }
-            g_strfreev (tokens);
+        } else if (g_str_has_prefix (message->text, filter_msg4)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 1) {
+				if (g_str_equal (tokens[1], "1")) {
+					msg = g_strdup_printf (_("Your password will expire in %s day\nDo you want to change password now?"), tokens[1]);
+				} else {
+					msg = g_strdup_printf (_("Your password will expire in %s days\nDo you want to change password now?"), tokens[1]);
+				}
+			} else {
+				msg = g_strdup (_("Your password will expire soon\nDo you want to change password now?"));
+			}
+			g_strfreev (tokens);
 
             show_ask_window (_("Password Expiration Warning"), msg,
                              _("Changing Password"), _("Cancel"), "ask_chpasswd");
             g_free (msg);
 
             continue;
-        }
+        } else if (g_str_has_prefix (message->text, filter_msg5)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 2) {
+				if (g_str_equal (tokens[1], "1")) {
+					msg = g_strdup_printf (_("Your account will not be available after %s.\n"
+                                             "Your account will expire in %s day"),
+                                             tokens[1], tokens[2]);
+				} else {
+					msg = g_strdup_printf (_("Your account will not be available after %s.\n"
+                                             "Your account will expire in %s days"),
+                                             tokens[1], tokens[2]);
+				}
+			}
+			g_strfreev (tokens);
+
+            show_msg_window (_("Account Expiration Warning"),
+                             msg, _("Ok"), "ACCT_EXP_OK");
+            g_free (msg);
+
+            continue;
+		} else if (g_str_has_prefix (message->text, filter_msg6)) {
+			gchar *msg = g_strdup (_("Duplicate logins detected with the same ID."));
+
+			show_msg_window (_("Duplicate Login Notification"),
+					msg, _("Ok"), "DUPLICATE_LOGIN_OK");
+			g_free (msg);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg7)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 1) {
+				msg = g_strdup_printf (_("You have %s login attempts remaining.\n"
+							"You can no longer log in when the maximum number of login attempts is exceeded."), tokens[1]);
+			}
+			g_strfreev (tokens);
+
+			show_msg_window (_("Authentication Failure"),
+					msg, _("Ok"), "AUTHENTICATION_FAILURE_OK");
+			g_free (msg);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg8)) {
+			gchar *msg = g_strdup_printf (_("Your account has been locked because you have exceeded the number of login attempts.\n"
+						"Please contact the administrator."));
+
+			show_msg_window (_("Account Locking Notification"),
+					msg, _("Ok"), "ACCOUNT_LOCKING_OK");
+			g_free (msg);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg9)) {
+			gchar *msg = g_strdup_printf (_("This account has expired and is no longer available.\n"
+						"Please contact the administrator."));
+
+			show_msg_window (_("Account Expiration Notification"),
+					msg, _("Ok"), "ACCOUNT_EXPIRATION_OK");
+			g_free (msg);
+
+			continue;
+		}
 
         if (!message->is_prompt)
         {
@@ -1066,16 +1150,21 @@ process_prompts (LightDMGreeter *greeter)
             const gchar *prompt_label;
             if ((strstr (message->text, _("(current) UNIX password")) != 0) ||
                 (strstr (message->text, "(current) UNIX password") != 0) ||
-                (strstr (message->text, "Enter current password") != 0)) {
+                (strstr (message->text, _("Enter current password")) != 0) ||
+                (strstr (message->text, "Enter current password") != 0) ||
+                (strstr (message->text, "Current password") != 0)) {
                 title = _("Changing Password - [Step 1]");
                 prompt_label = _("Enter current password :");
             } else if ((strstr (message->text, _("Enter new UNIX password")) != 0) ||
                        (strstr (message->text, "Enter new UNIX password") != 0) ||
-                       (strstr (message->text, "Enter new password") != 0)) {
+                       (strstr (message->text, _("Enter new password")) != 0) ||
+                       (strstr (message->text, "Enter new password") != 0) ||
+                       (strstr (message->text, "New password") != 0)) {
                 title = _("Changing Password - [Step 2]");
                 prompt_label = _("Enter new password :");
             } else if ((strstr (message->text, _("Retype new UNIX password")) != 0) ||
                        (strstr (message->text, "Retype new UNIX password") != 0) ||
+                       (strstr (message->text, _("Retype new password")) != 0) ||
                        (strstr (message->text, "Retype new password") != 0)) {
                 title = _("Changing Password - [Step 3]");
                 prompt_label = _("Retype new password :");
@@ -1207,7 +1296,10 @@ start_session (void)
     {
         set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Failed to start session"));
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
-    }
+    } else {
+		g_spawn_command_line_async (GOOROOM_SPLASH, NULL);
+	}
+
     g_free (session);
 }
 
@@ -1239,15 +1331,6 @@ login_win_username_entry_key_press_cb (GtkWidget *widget, GdkEventKey *event, gp
 void
 login_win_login_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
-    if (gtk_widget_get_visible ((GTK_WIDGET (login_win_username_entry))) &&
-        g_strcmp0 (gtk_entry_get_text (login_win_username_entry), "") == 0)
-    {
-        set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, _("Please enter username first"));
-        gtk_entry_set_text (login_win_pw_entry, "");
-        gtk_widget_grab_focus (GTK_WIDGET (login_win_username_entry));
-        return;
-    }
-
     /* Reset to default screensaver values */
     if (lightdm_greeter_get_lock_hint (greeter))
         XSetScreenSaver (gdk_x11_display_get_xdisplay (gdk_display_get_default ()), timeout, interval, prefer_blanking, allow_exposures);
@@ -1318,7 +1401,7 @@ pw_set_win_button_clicked_cb (GtkButton *button, gpointer user_data)
         changing_password = FALSE;
         gtk_label_set_text (pw_set_win_msg_label, "");
         gtk_entry_set_text (pw_set_win_prompt_entry, "");
-        show_login_window ();
+        show_login_window (login_win_pw_entry);
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
         return;
     }
@@ -1432,7 +1515,7 @@ ask_win_button_clicked_cb (GtkButton *button, gpointer user_data)
         changing_password = FALSE;
         gtk_label_set_text (pw_set_win_msg_label, "");
         gtk_entry_set_text (pw_set_win_prompt_entry, "");
-        show_login_window ();
+        show_login_window (login_win_pw_entry);
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
 
         return;
@@ -1459,7 +1542,7 @@ ask_win_button_clicked_cb (GtkButton *button, gpointer user_data)
             } else {
                 changing_password = FALSE;
 
-                show_login_window ();
+                show_login_window (login_win_pw_entry);
                 start_authentication (lightdm_greeter_get_authentication_user (greeter));
             }
         }
@@ -1482,13 +1565,36 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
     const gchar *data = g_object_get_data (G_OBJECT (msg_win), MSG_WIN_DATA);
 
-    if (g_strcmp0 (data, "FAILURE_CHPASSWD") == 0) {
+    if (g_str_equal (data, "FAILURE_CHPASSWD")) {
         changing_password = FALSE;
         gtk_label_set_text (pw_set_win_msg_label, "");
         gtk_entry_set_text (pw_set_win_prompt_entry, "");
-        show_login_window ();
+        show_login_window (login_win_pw_entry);
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
-    }
+    } else if (g_str_equal (data, "ACCT_EXP_OK")) {
+		if (lightdm_greeter_get_in_authentication (greeter)) {
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+			lightdm_greeter_respond (greeter, "acct_exp_ok", NULL);
+#else
+			lightdm_greeter_respond (greeter, "acct_exp_ok");
+#endif
+		}
+    } else if (g_str_equal (data, "DUPLICATE_LOGIN_OK")) {
+		if (lightdm_greeter_get_in_authentication (greeter)) {
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+			lightdm_greeter_respond (greeter, "duplicate_login_ok", NULL);
+#else
+			lightdm_greeter_respond (greeter, "duplicate_login_ok");
+#endif
+		}
+    } else if (g_str_equal (data, "AUTHENTICATION_FAILURE_OK") ||
+               g_str_equal (data, "ACCOUNT_EXPIRATION_OK") ||
+               g_str_equal (data, "ACCOUNT_LOCKING_OK")) {
+		show_login_window (login_win_pw_entry);
+		start_authentication (lightdm_greeter_get_authentication_user (greeter));
+	}
 }
 
 gboolean
@@ -1568,6 +1674,15 @@ timed_autologin_cb (LightDMGreeter *greeter)
 static void
 authentication_complete_cb (LightDMGreeter *greeter)
 {
+	if (login_type == LOGIN_GOOGLE || login_type == LOGIN_NAVER) {
+		if (lightdm_greeter_get_is_authenticated (greeter)) {
+			start_session ();
+		} else {
+		}
+
+		return;
+	}
+
     prompt_active = FALSE;
     gtk_entry_set_text (login_win_pw_entry, "");
 
@@ -1615,6 +1730,480 @@ authentication_complete_cb (LightDMGreeter *greeter)
     }
 }
 
+static gboolean
+try_google_login_with_authentication_code (gpointer data)
+{
+	gchar *auth_code = (gchar *)data;
+
+	if (lightdm_greeter_get_in_authentication (greeter)) {
+    	prompt_active = FALSE;
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+		lightdm_greeter_respond (greeter, auth_code, NULL);
+#else
+		lightdm_greeter_respond (greeter, auth_code);
+#endif
+	}
+
+	g_free (auth_code);
+
+	return FALSE;
+}
+
+static void
+cloud_login_signal_handler (GDBusProxy *proxy,
+                            gchar      *sender_name,
+                            gchar      *signal_name,
+                            GVariant   *parameters,
+                            gpointer    data)
+{
+	if (g_strcmp0 (signal_name, "AuthorizationCode") == 0) {
+		if (g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(s)"))) {
+			gchar *auth_code = NULL;
+			g_variant_get (parameters, "(&s)", &auth_code);
+			if (!auth_code || (strlen (auth_code) == 0)) {
+				GtkListBoxRow *row = gtk_list_box_get_selected_row (GTK_LIST_BOX (listbox_cloud_user));
+				gchar *id = g_object_get_data (G_OBJECT (row), "name");
+				killall_chromium (id);
+
+				gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
+				gtk_widget_show (cloud_win);
+
+				cur_show_win = cloud_win;
+				return;
+			}
+
+        	g_timeout_add (100, try_google_login_with_authentication_code, g_strdup (auth_code));
+		}
+	}
+}
+
+static void
+chromium_process_watch_cb (GPid pid, gint status, gpointer user_data)
+{
+	g_spawn_close_pid (pid);
+
+	gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
+	gtk_widget_show (cloud_win);
+
+    gtk_widget_set_sensitive (btn_shutdown, TRUE);
+    gtk_widget_set_sensitive (btn_restart, TRUE);
+    gtk_widget_set_sensitive (btn_suspend, TRUE);
+    gtk_widget_set_sensitive (btn_hibernate, TRUE);
+}
+
+static void
+init_cloud_login_daemon (void)
+{
+	GError *error = NULL;
+
+	gcl_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                G_DBUS_CALL_FLAGS_NONE,
+                NULL,
+                "kr.gooroom.CloudLogin",
+                "/kr/gooroom/CloudLogin",
+                "kr.gooroom.CloudLogin",
+                NULL,
+                &error);
+
+	if (gcl_proxy != NULL) {
+		g_signal_connect (gcl_proxy, "g-signal", G_CALLBACK (cloud_login_signal_handler), NULL);
+	} else {
+		if (error != NULL) {
+			g_warning ("Failed to create proxy: %s", error->message);
+			g_error_free (error);
+		} else {
+			g_warning ("Failed to create proxy");
+		}
+	}
+}
+
+static void
+update_cloud_win_user_list_box (GtkWidget *listbox)
+{
+	gtk_container_foreach (GTK_CONTAINER (listbox),
+							(GtkCallback) gtk_widget_destroy, NULL);
+
+	GList *l = NULL;
+	GList *items = lightdm_user_list_get_users (lightdm_user_list_get_instance ());
+	for (l = items; l ; l = l->next) {
+		LightDMUser *user = (LightDMUser *)l->data;
+		const gchar *name = lightdm_user_get_name (user);
+
+		if (login_type != get_user_account_type (name))
+			continue;
+
+		GtkWidget *row = gtk_list_box_row_new ();
+		g_object_set_data_full (G_OBJECT (row), "name", g_strdup (name), g_free);
+
+		GtkWidget *hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+		gtk_container_set_border_width (GTK_CONTAINER (hbox), 3);
+		gtk_container_add (GTK_CONTAINER(row), hbox);
+
+		gchar *markup = g_markup_printf_escaped ("<span size=\"medium\">%s</span>", name);
+		GtkWidget *label = gtk_label_new (markup);
+		gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+		gtk_widget_set_halign (label, GTK_ALIGN_START);
+		gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
+
+		gtk_container_add (GTK_CONTAINER (hbox), label);
+		gtk_widget_show_all (row);
+
+		gtk_container_add (GTK_CONTAINER (listbox), row);
+	}
+}
+
+static void
+go_to_login_step1 (GtkButton *button, gpointer data)
+{
+	gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
+}
+
+static void
+go_to_login_step2 (GtkButton *button, gpointer data)
+{
+	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rdo_login_gooroom))) {
+		login_type = LOGIN_GOOROOM;
+		show_login_window (login_win_username_entry);
+		g_remove ("/tmp/.gooroom-greeter-cloud-login");
+		return;
+	}
+
+	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rdo_login_google))) {
+		login_type = LOGIN_GOOGLE;
+		g_file_set_contents ("/tmp/.gooroom-greeter-cloud-login", "LOGIN_GOOGLE", -1, NULL);
+	} else if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rdo_login_naver))) {
+		login_type = LOGIN_NAVER;
+		g_file_set_contents ("/tmp/.gooroom-greeter-cloud-login", "LOGIN_NAVER", -1, NULL);
+	}
+
+	update_cloud_win_user_list_box (listbox_cloud_user);
+
+	gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step2");
+}
+
+static void
+go_to_login_step3 (GtkButton *button, gpointer data)
+{
+	const GdkRectangle *area;
+	gchar *url = NULL, *id = NULL;
+	gint win_w = 480, win_h = 600;
+
+	area = greeter_background_get_active_monitor_geometry (greeter_background);
+
+	GtkListBoxRow *row = gtk_list_box_get_selected_row (GTK_LIST_BOX (listbox_cloud_user));
+	if (!row) {
+		row = gtk_list_box_get_row_at_index (GTK_LIST_BOX (listbox_cloud_user), 0);
+		if (!row)
+			return;
+	}
+
+	id = g_object_get_data (G_OBJECT (row), "name");
+
+	hide_all_windows ();
+
+	if (login_type == LOGIN_GOOGLE) {
+		const char *END_POINT     = "https://accounts.google.com/o/oauth2/auth";
+		const char *CLIENT_ID     = "530820566685-k3kfkmu92e2shgpouotc6te3cdp5p2lh.apps.googleusercontent.com";
+		const char *REDIRECT_URI  = "http%3A%2F%2Flocalhost%3A5000";
+		const char *SCOPE         = "profile%20email";
+		const char *RESPONSE_TYPE = "code";
+
+		url = g_strdup_printf ("%s?"
+                               "client_id=%s&"
+                               "redirect_uri=%s&"
+                               "scope=%s&"
+                               "response_type=%s",
+                               END_POINT, CLIENT_ID, REDIRECT_URI, SCOPE, RESPONSE_TYPE);
+	} else if (login_type == LOGIN_NAVER) {
+		const char *END_POINT     = "https://nid.naver.com/oauth2.0/authorize";
+		const char *CLIENT_ID     = "9Mbn19F_0ouV4f2MHH31";
+		const char *REDIRECT_URI  = "http%3A%2F%2Flocalhost%3A5000";
+		const char *STATE         = "0ab1cd2ef3gh4ij5kl6mn7op8qr9st0uvwxyz0AB1CD2EF3GH4IJ5KL6MN7OP8QR9ST0UVWXYZ";
+		const char *RESPONSE_TYPE = "code";
+
+		url = g_strdup_printf ("%s?"
+                               "client_id=%s&"
+                               "redirect_uri=%s&"
+                               "state=%s&"
+                               "response_type=%s",
+                               END_POINT, CLIENT_ID, REDIRECT_URI, STATE, RESPONSE_TYPE);
+	} else {
+		gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
+		gtk_widget_show (cloud_win);
+
+    	cur_show_win = cloud_win;
+		return;
+	}
+
+	start_authentication (id);
+
+	if (lightdm_greeter_get_in_authentication (greeter)) {
+		GPid pid;
+		gchar *cmd = NULL;
+		gchar *winsize = g_strdup_printf ("%d,%d", win_w, win_h);
+		gchar *winpos = g_strdup_printf ("%d,%d", area->x + (area->width-win_w)/2, area->y + (area->height-win_h)/2);
+
+		cmd = g_strdup_printf ("%s %s "
+				"--no-sandbox "
+				"--window-size=%s "
+				"--window-position=%s "
+				"--disable-features=TranslateUI "
+				"--app=%s", CHROMIUM_PKEXEC, id, winsize, winpos, url);
+
+		gchar **argv = g_strsplit (cmd, " ", -1);
+
+		// Spawn child process.
+		if (g_spawn_async_with_pipes (NULL, argv, NULL, G_SPAWN_DO_NOT_REAP_CHILD, NULL,
+				NULL, &pid, NULL, NULL, NULL, NULL))
+		{
+			gtk_widget_set_sensitive (btn_shutdown, FALSE);
+			gtk_widget_set_sensitive (btn_restart, FALSE);
+			gtk_widget_set_sensitive (btn_suspend, FALSE);
+			gtk_widget_set_sensitive (btn_hibernate, FALSE);
+
+			g_child_watch_add (pid, chromium_process_watch_cb, NULL);
+		}
+
+		g_strfreev (argv);
+
+		g_free (cmd);
+		g_free (winsize);
+		g_free (winpos);
+	}
+
+	g_free (url);
+}
+
+static void
+on_register_account_clicked_cb (GtkButton *button, gpointer data)
+{
+    gtk_entry_set_text (GTK_ENTRY (user_reg_win_ent), "");
+
+	gtk_widget_hide (cloud_win);
+	gtk_widget_show (user_reg_win);
+
+    cur_show_win = user_reg_win;
+
+    gtk_widget_grab_focus (user_reg_win_ent);
+}
+
+static void
+setup_cloud_win (GtkBuilder *builder)
+{
+    /* Cloud Login Window */
+    cloud_win = GTK_WIDGET (gtk_builder_get_object (builder, "cloud_win"));
+    img_cloud_win_naver = GTK_WIDGET (gtk_builder_get_object (builder, "img_cloud_win_naver"));
+    img_cloud_win_google = GTK_WIDGET (gtk_builder_get_object (builder, "img_cloud_win_google"));
+    img_cloud_win_logo = GTK_WIDGET (gtk_builder_get_object (builder, "img_cloud_win_logo"));
+    stack_cloud_win = GTK_WIDGET (gtk_builder_get_object (builder, "stack_cloud_win"));
+    rdo_login_naver = GTK_WIDGET (gtk_builder_get_object (builder, "rdo_login_naver"));
+    rdo_login_google = GTK_WIDGET (gtk_builder_get_object (builder, "rdo_login_google"));
+    rdo_login_gooroom = GTK_WIDGET (gtk_builder_get_object (builder, "rdo_login_gooroom"));
+    btn_cloud_win_step1_next = GTK_WIDGET (gtk_builder_get_object (builder, "btn_cloud_win_step1_next"));
+    btn_cloud_win_step2_next = GTK_WIDGET (gtk_builder_get_object (builder, "btn_cloud_win_step2_next"));
+    btn_cloud_win_step2_prev = GTK_WIDGET (gtk_builder_get_object (builder, "btn_cloud_win_step2_prev"));
+    btn_register_account = GTK_WIDGET (gtk_builder_get_object (builder, "btn_register_account"));
+    listbox_cloud_user = GTK_WIDGET (gtk_builder_get_object (builder, "listbox_cloud_user"));
+    webview_dialog = GTK_WIDGET (gtk_builder_get_object (builder, "webview_dialog"));
+    webview_dialog_box = GTK_WIDGET (gtk_builder_get_object (builder, "webview_dialog_box"));
+
+    gtk_overlay_add_overlay (screen_overlay, cloud_win);
+
+    gtk_widget_set_halign (cloud_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (cloud_win, GTK_ALIGN_CENTER);
+
+    gchar *naver_img_path = g_build_filename (PKGDATA_DIR, "images", "naver.png", NULL);
+    gchar *google_img_path = g_build_filename (PKGDATA_DIR, "images", "google.svg", NULL);
+    gchar *logo_img_path = g_build_filename (PKGDATA_DIR, "images", "gooroom-logo.svg", NULL);
+
+    GdkPixbuf *naver_pixbuf = gdk_pixbuf_new_from_file_at_size (naver_img_path, 96, 96, NULL);
+    GdkPixbuf *google_pixbuf = gdk_pixbuf_new_from_file_at_size (google_img_path, 96, 96, NULL);
+    GdkPixbuf *logo_pixbuf = gdk_pixbuf_new_from_file_at_size (logo_img_path, 160, 160, NULL);
+
+    gtk_image_set_from_pixbuf (GTK_IMAGE (img_cloud_win_naver), naver_pixbuf);
+    gtk_image_set_from_pixbuf (GTK_IMAGE (img_cloud_win_google), google_pixbuf);
+    gtk_image_set_from_pixbuf (GTK_IMAGE (img_cloud_win_logo), logo_pixbuf);
+
+    g_free (naver_img_path);
+    g_free (google_img_path);
+    g_free (logo_img_path);
+
+    g_object_unref (naver_pixbuf);
+    g_object_unref (google_pixbuf);
+    g_object_unref (logo_pixbuf);
+
+    g_signal_connect (G_OBJECT (btn_cloud_win_step1_next), "clicked",
+                      G_CALLBACK (go_to_login_step2), NULL);
+    g_signal_connect (G_OBJECT (btn_cloud_win_step2_prev), "clicked",
+                      G_CALLBACK (go_to_login_step1), NULL);
+    g_signal_connect (G_OBJECT (btn_cloud_win_step2_next), "clicked",
+                      G_CALLBACK (go_to_login_step3), NULL);
+    g_signal_connect (G_OBJECT (btn_register_account), "clicked",
+                      G_CALLBACK (on_register_account_clicked_cb), NULL);
+}
+
+static gboolean
+create_user_done_cb (gpointer data)
+{
+	/* update user list box */
+	update_cloud_win_user_list_box (listbox_cloud_user);
+
+    gtk_widget_hide (user_reg_win);
+    gtk_widget_show (cloud_win);
+
+    cur_show_win = cloud_win;
+
+	return FALSE;
+}
+
+
+static void
+create_user (const gchar *user)
+{
+	gchar *cmd = NULL, *id = NULL;
+    const char *cmd_prefix, *account_type;
+
+	if (login_type == LOGIN_GOOGLE) {
+		account_type = "google-account";
+		if (g_str_has_suffix (user, "@gmail.com") == FALSE) {
+			id = g_strdup_printf ("%s@gmail.com", user);
+		} else {
+			id = g_strdup (user);
+		}
+	} else if (login_type == LOGIN_NAVER) {
+		account_type = "naver-account";
+		if (g_str_has_suffix (user, "@naver.com") == FALSE) {
+			id = g_strdup_printf ("%s@naver.com", user);
+		} else {
+			id = g_strdup (user);
+		}
+	} else {
+		return;
+	}
+
+	cmd_prefix = "/usr/bin/pkexec /usr/sbin/adduser --force-badname --shell /bin/bash --disabled-login --gecos";
+	cmd = g_strdup_printf ("%s \"%s,,,,%s\" %s", cmd_prefix, id, account_type, id);
+    g_setenv ("SHELL", "/bin/bash", TRUE);
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
+    g_setenv ("SHELL", "/bin/false", TRUE);
+
+	g_free (id);
+	g_free (cmd);
+}
+
+static void
+on_user_reg_ok_button_clicked_cb (GtkButton *button, gpointer data)
+{
+	const gchar *user;
+	gboolean valid = FALSE;
+
+	const gchar *empty_notice = _("User name must start with a letter.");
+	const gchar *letter_notice = _("Login name must consist of\n"
+                                   "  ➣ lower case letters from the English alphabet\n"
+                                   "  ➣ digits\n"
+                                   "  ➣ any of the characters \".\", \"-\" and \"_\"");
+	const gchar *exists_notice = _("A user with this name already exists.\n"
+                                   "Please choose a different name for the new user.");
+
+	user = gtk_entry_get_text (GTK_ENTRY (user_reg_win_ent));
+
+	if (strlen (user) <= 0) {
+        gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", empty_notice);
+		gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
+		g_free (markup);
+		return;
+	}
+
+	/* find user */
+	GList *l = NULL;
+	GList *items = lightdm_user_list_get_users (lightdm_user_list_get_instance ());
+	for (l = items; l ; l = l->next) {
+		LightDMUser *ldm_user = (LightDMUser *)l->data;
+		if (g_str_equal (user, lightdm_user_get_name (ldm_user))) {
+            gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", exists_notice);
+            gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
+            g_free (markup);
+			return;
+		}
+	}
+
+	/* first char of a login must be a letter, and it must only composed
+	 * of ASCII letters, digits, and a '.', '-', '_' */
+    if (g_ascii_islower (*user) || g_ascii_isdigit (*user) ||
+        *user == '.' || *user == '-' || *user == '_' ) {
+        valid = TRUE;
+    }
+
+	if (!valid) {
+        gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", letter_notice);
+		gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
+        g_free (markup);
+		return;
+	}
+
+	/* create user */
+	create_user (user);
+
+    gchar *markup = g_strdup ("<span color=\"red\"><i>Creating user...</i></span>");
+    gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
+    g_free (markup);
+
+    g_timeout_add (1000, create_user_done_cb, NULL);
+}
+
+static void
+on_user_reg_cancel_button_clicked_cb (GtkButton *button, gpointer data)
+{
+	gtk_widget_hide (user_reg_win);
+	gtk_widget_show (cloud_win);
+
+    cur_show_win = cloud_win;
+}
+
+static void
+on_user_reg_win_entry_activate_cb (GtkWidget *widget, gpointer data)
+{
+    g_signal_emit_by_name (user_reg_win_ok_btn, "clicked", data);
+}
+
+static gboolean
+on_user_reg_win_key_press_event_cb (GtkWidget *widget,
+                                        GdkEventKey *event,
+                                        gpointer data)
+{
+    if (event->keyval == GDK_KEY_Escape) {
+        g_signal_emit_by_name (user_reg_win_cancel_btn, "clicked", data);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void
+setup_account_registration_win (GtkBuilder *builder)
+{
+    /* Account Registration Window */
+    user_reg_win = GTK_WIDGET (gtk_builder_get_object (builder, "user_reg_win"));
+    user_reg_win_ent = GTK_WIDGET (gtk_builder_get_object (builder, "user_reg_win_ent"));
+    user_reg_win_err_lbl = GTK_WIDGET (gtk_builder_get_object (builder, "user_reg_win_err_lbl"));
+    user_reg_win_ok_btn = GTK_WIDGET (gtk_builder_get_object (builder, "user_reg_win_ok_btn"));
+    user_reg_win_cancel_btn = GTK_WIDGET (gtk_builder_get_object (builder, "user_reg_win_cancel_btn"));
+
+    gtk_overlay_add_overlay (screen_overlay, user_reg_win);
+
+    gtk_widget_set_halign (user_reg_win, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign (user_reg_win, GTK_ALIGN_CENTER);
+
+    g_signal_connect (G_OBJECT (user_reg_win_ok_btn), "clicked",
+                      G_CALLBACK (on_user_reg_ok_button_clicked_cb), NULL);
+    g_signal_connect (G_OBJECT (user_reg_win_cancel_btn), "clicked",
+                      G_CALLBACK (on_user_reg_cancel_button_clicked_cb), NULL);
+    g_signal_connect (G_OBJECT (user_reg_win_ent), "activate",
+                      G_CALLBACK (on_user_reg_win_entry_activate_cb), NULL);
+    g_signal_connect (G_OBJECT (user_reg_win), "key-press-event",
+                      G_CALLBACK (on_user_reg_win_key_press_event_cb), NULL);
+}
+
 static GdkFilterReturn
 wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
 {
@@ -1628,10 +2217,6 @@ wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
         if (win_type != GDK_WINDOW_TYPE_HINT_COMBO &&
             win_type != GDK_WINDOW_TYPE_HINT_TOOLTIP &&
             win_type != GDK_WINDOW_TYPE_HINT_NOTIFICATION)
-        /*
-        if (win_type == GDK_WINDOW_TYPE_HINT_DESKTOP ||
-            win_type == GDK_WINDOW_TYPE_HINT_DIALOG)
-        */
             gdk_window_focus (win, GDK_CURRENT_TIME);
     }
     else if (xevent->type == UnmapNotify)
@@ -1646,6 +2231,44 @@ wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
 
     return GDK_FILTER_CONTINUE;
 }
+
+/* Copied from libxfce4ui/xfce-gdk-extensions.c:
+ * xfce_gdk_screen_get_active () */
+//static GdkScreen *
+//xfce_gdk_screen_get_active (gint *monitor_return)
+//{
+//    GdkDisplay       *display;
+//    gint              rootx, rooty;
+//    GdkScreen        *screen;
+//
+//G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+//#if GTK_CHECK_VERSION (3, 0, 0)
+//    GdkDeviceManager *manager;
+//
+//    display = gdk_display_get_default ();
+//    manager = gdk_display_get_device_manager (display);
+//    gdk_device_get_position (gdk_device_manager_get_client_pointer (manager), &screen, &rootx, &rooty);
+//#else
+//    display = gdk_display_get_default ();
+//    gdk_display_get_pointer (display, &screen, &rootx, &rooty, NULL);
+//#endif
+//
+//    if (G_UNLIKELY (screen == NULL))
+//    {
+//        screen = gdk_screen_get_default ();
+//        if (monitor_return != NULL)
+//            *monitor_return = 0;
+//    }
+//    else
+//    {
+//        /* return the monitor number */
+//        if (monitor_return != NULL)
+//            *monitor_return = gdk_screen_get_monitor_at_point (screen, rootx, rooty);
+//    }
+//G_GNUC_END_IGNORE_DEPRECATIONS
+//
+//    return screen;
+//}
 
 int
 main (int argc, char **argv)
@@ -1678,16 +2301,13 @@ main (int argc, char **argv)
 
     g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
 
-    GPid pid = 0;
-    gchar **arr_cmd = NULL;
-    gchar *cmd = "/usr/lib/at-spi2-core/at-spi-bus-launcher --launch-immediately";
+    gchar **arr = NULL;
+    const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
+    g_shell_parse_argv (cmd, NULL, &arr, NULL);
 
-    g_shell_parse_argv (cmd, NULL, &arr_cmd, NULL);
+    g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
-    g_spawn_async (NULL, arr_cmd, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, &pid, NULL);
-
-    g_strfreev (arr_cmd);
-    arr_cmd = NULL;
+    g_strfreev (arr);
 
     /* init gtk */
     gtk_init (&argc, &argv);
@@ -1797,8 +2417,9 @@ main (int argc, char **argv)
     btn_restart = GTK_WIDGET (gtk_builder_get_object (builder, "btn_restart"));
     btn_suspend = GTK_WIDGET (gtk_builder_get_object (builder, "btn_suspend"));
     btn_hibernate = GTK_WIDGET (gtk_builder_get_object (builder, "btn_hibernate"));
+    btn_home = GTK_WIDGET (gtk_builder_get_object (builder, "btn_home"));
 
-    /* Right menu in panel */
+    /* indicator box in panel */
     indicator_box = GTK_WIDGET (gtk_builder_get_object (builder, "indicator_box"));
 
     /* Power dialog */
@@ -1872,9 +2493,16 @@ main (int argc, char **argv)
     /* Background */
     greeter_background = greeter_background_new (GTK_WIDGET (screen_overlay));
 
-    value = config_get_string (NULL, CONFIG_KEY_ACTIVE_MONITOR, NULL);
-    greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
-    g_free (value);
+	value = config_get_string (NULL, CONFIG_KEY_ACTIVE_MONITOR, NULL);
+	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
+	g_free (value);
+
+//	int monitor = 0;
+//	xfce_gdk_screen_get_active (&monitor);
+//	monitors = gdk_screen_get_n_monitors (screen);
+//	value = g_strdup_printf ("%d", monitor);
+//	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
+//	g_free (value);
 
     read_monitor_configuration (CONFIG_GROUP_DEFAULT, GREETER_BACKGROUND_DEFAULT);
 
@@ -1923,6 +2551,10 @@ main (int argc, char **argv)
         start_authentication ("*other");
     }
 
+    setup_cloud_win (builder);
+    setup_account_registration_win (builder);
+    init_cloud_login_daemon ();
+
     gtk_widget_set_halign (login_win, GTK_ALIGN_CENTER);
     gtk_widget_set_valign (login_win, GTK_ALIGN_CENTER);
     gtk_widget_set_halign (cmd_win, GTK_ALIGN_CENTER);
@@ -1942,6 +2574,12 @@ main (int argc, char **argv)
     load_commands ();
     load_indicators ();
 
+    /* Start the indicator applications service */
+	indicator_application_service_start ();
+	network_indicator_application_start ();
+	other_indicator_application_start ();
+    notify_service_start ();
+
     /* There is no window manager, so we need to implement some of its functionality */
     GdkWindow* root_window = gdk_get_default_root_window ();
     gdk_window_set_events (root_window, gdk_window_get_events (root_window) | GDK_SUBSTRUCTURE_MASK);
@@ -1949,31 +2587,32 @@ main (int argc, char **argv)
 
     gtk_widget_show (GTK_WIDGET (screen_overlay));
 
-    cur_show_win = login_win;
+	cur_show_win = cloud_win;
     changing_password = FALSE;
 
-	/* Start the xfce notification service */
-	notification_service_start ();
+    value = config_get_string (NULL, CONFIG_KEY_ALLOW_CLOUD_LOGIN, NULL);
+    if (value)
+    {
+        allow_cloud_login = g_str_equal (value, "true");
+        g_free (value);
+    }
 
-    /* Start the indicator applications service */
-    indicator_application_service_start ();
-    network_indicator_application_start ();
-    other_indicator_application_start ();
+	if (!allow_cloud_login) {
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (rdo_login_gooroom), TRUE);
+		gtk_widget_hide (btn_home);
+
+        go_to_login_step2 (GTK_BUTTON (btn_cloud_win_step1_next), NULL);
+    }
 
     g_debug ("Run Gtk loop...");
     gtk_main ();
     g_debug ("Gtk loop exits");
 
-    sigterm_cb (/* is_callback */ GINT_TO_POINTER (FALSE));
+	if (gcl_proxy)
+		g_object_unref (gcl_proxy);
+
+    sigterm_cb (GINT_TO_POINTER (FALSE));
 
 done:
-#if 0
-    if (pid != 0) {
-        kill (pid, SIGKILL);
-        waitpid (pid, NULL, 0);
-        pid = 0;
-    }
-#endif
-
     return ret;
 }

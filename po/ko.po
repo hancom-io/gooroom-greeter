@@ -83,6 +83,9 @@ msgstr "<b>절전</b>"
 msgid "<b>Hibernate</b>"
 msgstr "<b>최대절전</b>"
 
+msgid "<b>Home</b>"
+msgstr "<b>메인화면</b>"
+
 msgid "System Restart"
 msgstr "시스템 재시작"
 
@@ -118,6 +121,9 @@ msgstr "시스템을 절전모드로 전환합니다."
 
 msgid "Hibernate system"
 msgstr "시스템을 최대절전모드로 전환합니다."
+
+msgid "Go to home"
+msgstr "메인화면으로 이동"
 
 msgid "Changing Password"
 msgstr "패스워드 변경"
@@ -186,15 +192,98 @@ msgid "Retype new UNIX password"
 msgstr "새 UNIX 암호 재입력"
 
 #, c-format
-msgid "Your password will expire in %d day\nDo you want to change password now?"
-msgstr "패스워드 만료까지 %d일 남았습니다.\n지금 패스워드를 변경하시겠습니까?"
+msgid "Your password will expire in %s day\nDo you want to change password now?"
+msgstr "패스워드 만료까지 %s일 남았습니다.\n지금 패스워드를 변경하시겠습니까?"
 
 #, c-format
-msgid "Your password will expire in %d days\nDo you want to change password now?"
-msgstr "패스워드 만료까지 %d일 남았습니다.\n지금 패스워드를 변경하시겠습니까?"
+msgid "Your password will expire in %s days\nDo you want to change password now?"
+msgstr "패스워드 만료까지 %s일 남았습니다.\n지금 패스워드를 변경하시겠습니까?"
 
 msgid "Your password will expire soon\nDo you want to change password now?"
 msgstr "패스워드가 곧 만료됩니다.\n지금 패스워드를 변경하시겠습니까?"
 
 msgid "Please enter username first"
 msgstr "사용자 이름을 먼저 입력해 주십시오"
+
+msgid "Account Expiration Warning"
+msgstr "계정 만료 경고"
+
+#, c-format
+msgid ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s day"
+msgstr ""
+"이 계정은 %s일 이후로 사용할 수 없습니다.\n"
+"계정 만료까지 %s일 남았습니다."
+
+#, c-format
+msgid ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s days"
+msgstr ""
+"이 계정은 %s일 이후로 사용할 수 없습니다.\n"
+"계정 만료까지 %s일 남았습니다."
+
+msgid "Duplicate Login Notification"
+msgstr "중복로그인 알림"
+
+msgid "Duplicate logins detected with the same ID."
+msgstr "동일 아이디로 중복로그인이 감지되었습니다."
+
+msgid "Authentication Failure"
+msgstr "로그인 실패"
+
+#, c-format
+msgid ""
+"You have %s login attempts remaining.\n"
+"You can no longer log in when the maximum number of login attempts is exceeded."
+msgstr ""
+"로그인 시도 가능 횟수가 %s회 남았습니다.\n"
+"로그인 시도 최대 가능 횟수 초과시 더이상 로그인 할 수 없습니다."
+
+msgid "Account Locking Notification"
+msgstr "계정 잠금 알림"
+
+msgid ""
+"Your account has been locked because you have exceeded the number of login attempts.\n"
+"Please contact the administrator."
+msgstr ""
+"로그인 시도 가능 횟수를 초과하여 계정이 잠겼습니다.\n"
+"관리자에게 문의하여 주시기 바랍니다."
+
+msgid "Account Expiration Notification"
+msgstr "계정 만료 알림"
+
+msgid ""
+"This accout has expired and is no longer available.\n"
+"Please contact the administrator."
+msgstr ""
+"이 계정은 사용기간 만료로 더이상 사용할 수 없습니다.\n"
+"관리자에게 문의하여 주시기 바랍니다."
+
+msgid "<span size=\"xx-large\"><b>Step 1 - Select Service</b></span>"
+msgstr "<span size=\"xx-large\"><b>1 단계 - 서비스 선택</b></span>"
+
+msgid "<span size=\"xx-large\"><b>Step 2 - Select Account</b></span>"
+msgstr "<span size=\"xx-large\"><b>2 단계 - 계정 선택</b></span>"
+
+msgid "<span size=\"x-large\">Select Account</span>"
+msgstr "<span size=\"x-large\">계정 선택</span>"
+
+msgid "<span size=\"x-large\">Select Service</span>"
+msgstr "<span size=\"x-large\">서비스 선택</span>"
+
+msgid ""
+"<span size=\"medium\"><i><b>Select a service that will work with the GOOROOM for the first time.</b></i></span>"
+msgstr ""
+"<span size=\"medium\"><i><b>로그인 할 서비스를 선택하고 '다음' 버튼을 눌러 주십시오.</b></i></span>"
+
+msgid ""
+"<span size=\"medium\"><i><b>Please select a Account to login from the list below. If not, please "
+"click the register button to register your Account.</b></i></span>"
+msgstr ""
+"<span size=\"medium\"><i><b>아래 목록에서 로그인 계정을 선택하고 '다음' 버튼을 눌러 주십시오."
+"만약 계정이 존재하지 않다면 '계정 등록' 버튼을 눌러 계정을 먼저 등록하시기 바랍니다.</b></i></span>"
+
+msgid "Register Account"
+msgstr "계정 등록"

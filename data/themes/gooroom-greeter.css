@@ -16,6 +16,13 @@ For more fine-grain control, you can also use the named widgets. Those are being
   text-shadow: none;
   -gtk-icon-shadow: none; }
 
+#logo_box {
+  border: none;
+  box-shadow: none;
+  border-radius: 5px 0 0 5px;
+  background-color: #373737;
+}
+
 #panel_box {
   border: none;
   box-shadow: none;
@@ -54,6 +61,7 @@ menuitem {
   min-width: 1px;
   min-height: 1px; }
 
+#dialog_button,
 #panel_button {
   color: #ffffff;
   border: none;
@@ -65,6 +73,18 @@ menuitem {
     background: rgba(255, 255, 255, 0.4); }
   #panel_button:active, #panel_button:checked  {
     background: rgba(0, 255, 255, 0.6); }
+  #panel_button:disabled {
+    color: @insensitive_fg_color; }
+
+#cloud_window {
+  font-weight: normal;
+  border-style: none;
+  border-radius: 8px 5px 5px 8px;
+  background-image: none;
+  background-color: #ffffff;
+  color: #000000; }
+  #cloud_window #step_label {
+    color: #0000ff; }
 
 #dialog {
   font-weight: normal;
@@ -90,7 +110,7 @@ menuitem {
 
 #login_window frame > border.flat {
   border: none;
-  border-radius:8px 8px 10px 10px;
+  border-radius: 8px 8px 10px 10px;
   background-color: #ffffff;
   background-image: none;
   box-shadow: none;}

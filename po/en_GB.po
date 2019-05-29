@@ -170,15 +170,12 @@ msgstr "Enter new password :"
 msgid "Retype new password :"
 msgstr "Retype new password :"
 
-# 주의, Linux-PAM에 존재하는 "(current) UNIX password" 의 번역과 동일해야함
 msgid "(current) UNIX password"
 msgstr "(current) UNIX password"
 
-# 주의, Linux-PAM에 존재하는 "Enter new UNIX password" 의 번역과 동일해야함
 msgid "Enter new UNIX password"
 msgstr "Enter new UNIX password"
 
-# 주의, Linux-PAM에 존재하는 "Retype new UNIX password" 의 번역과 동일해야함
 msgid "Retype new UNIX password"
 msgstr "Retype new UNIX password"
 
@@ -195,3 +192,86 @@ msgstr "Your password will expire soon\nDo you want to change password now?"
 
 msgid "Please enter username first"
 msgstr "Please enter username first"
+
+msgid "Account Expiration Warning"
+msgstr "Account Expiration Warning"
+
+#, c-format
+msgid ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s day"
+msgstr ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s day"
+
+#, c-format
+msgid ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s days"
+msgstr ""
+"Your account will not be available after %s.\n"
+"Your account will expire in %s days"
+
+msgid "Duplicate Login Notification"
+msgstr "Duplicate Login Notification"
+
+msgid "Duplicate logins detected with the same ID."
+msgstr "Duplicate logins detected with the same ID."
+
+msgid "Authentication Failure"
+msgstr "Authentication Failure"
+
+#, c-format
+msgid ""
+"You have %s login attempts remaining.\n"
+"You can no longer log in when the maximum number of login attempts is exceeded."
+msgstr ""
+"You have %s login attempts remaining.\n"
+"You can no longer log in when the maximum number of login attempts is exceeded."
+
+msgid "Account Locking Notification"
+msgstr "Account Locking Notification"
+
+msgid ""
+"Your account has been locked because you have exceeded the number of login attempts.\n"
+"Please contact the administrator."
+msgstr ""
+"Your account has been locked because you have exceeded the number of login attempts.\n"
+"Please contact the administrator."
+
+msgid "Account Expiration Notification"
+msgstr "Account Expiration Notification"
+
+msgid ""
+"This accout has expired and is no longer available.\n"
+"Please contact the administrator."
+msgstr ""
+"This accout has expired and is no longer available.\n"
+"Please contact the administrator."
+
+msgid "<span size=\"xx-large\"><b>Step 1</b></span>"
+msgstr "<span size=\"xx-large\"><b>Step 1</b></span>"
+
+msgid "<span size=\"xx-large\"><b>Step 2</b></span>"
+msgstr "<span size=\"xx-large\"><b>Step 2</b></span>"
+
+msgid "<span size=\"x-large\">Select Account</span>"
+msgstr "<span size=\"x-large\">Select Account</span>"
+
+msgid "<span size=\"x-large\">Select Service</span>"
+msgstr "<span size=\"x-large\">Select Service</span>"
+
+msgid ""
+"<span size=\"medium\"><i><b>Select a service that will work with the GOOROOM for the first time.</b></i></span>"
+msgstr ""
+"<span size=\"medium\"><i><b>Select a service that will work with the GOOROOM for the first time.</b></i></span>"
+
+msgid ""
+"<span size=\"medium\"><i><b>Please select a Account to login from the list below. If not, please "
+"click the register button to register your Account.</b></i></span>"
+msgstr ""
+"<span size=\"medium\"><i><b>Please select a Account to login from the list below. If not, please "
+"click the register button to register your Account.</b></i></span>"
+
+msgid "Register Account"
+msgstr "Register Account"
