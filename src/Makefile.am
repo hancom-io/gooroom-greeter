@@ -2,11 +2,16 @@ pkglibexec_SCRIPTS = chromium-pkexec chromium-killall
 
 sbin_PROGRAMS = gooroom-greeter
 
-gooroom_greeter_built_sources = \
-	gooroom-greeter-ui.h
+BUILT_SOURCES = \
+	greeter-resources.c \
+	greeter-resources.h
+
+
+#gooroom_greeter_built_sources = \
+#	gooroom-greeter-ui.h
 
 gooroom_greeter_SOURCES = \
-	$(gooroom_greeter_built_sources) \
+	$(BUILT_SOURCES) \
 	indicator-button.h	\
 	indicator-button.c	\
 	gooroom-greeter.c \
@@ -14,6 +19,8 @@ gooroom_greeter_SOURCES = \
 	greeterbackground.h \
 	greeterconfiguration.c \
 	greeterconfiguration.h
+
+#	$(gooroom_greeter_built_sources)
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
@@ -55,8 +62,14 @@ gooroom_greeter_LDADD = \
 	$(AYATANA_INDICATOR_NG_LIBS) \
 	-lm
 
-gooroom-greeter-ui.h: $(srcdir)/gooroom-greeter.glade Makefile
-	$(AM_V_GEN) exo-csource --static --strip-comments --strip-content --name=gooroom_greeter_ui $< >$@
+resource_files = $(shell glib-compile-resources --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/gresource.xml)
+greeter-resources.c: gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-source --c-name greeter $<
+greeter-resources.h: gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-header --c-name greeter $<
+
+#gooroom-greeter-ui.h: $(srcdir)/gooroom-greeter.glade Makefile
+#	$(AM_V_GEN) exo-csource --static --strip-comments --strip-content --name=gooroom_greeter_ui $< >$@
 
 @INTLTOOL_POLICY_RULE@
 polkitdir = $(datadir)/polkit-1/actions
@@ -67,7 +80,8 @@ CLEANFILES = \
 	kr.gooroom.greeter.policy
 
 DISTCLEANFILES = \
-	$(gooroom_greeter_built_sources)
+	$(BUILT_SOURCES)
+#	$(gooroom_greeter_built_sources)
 
-BUILT_SOURCES = \
-	$(gooroom_greeter_built_sources)
+#BUILT_SOURCES = \
+#	$(gooroom_greeter_built_sources)

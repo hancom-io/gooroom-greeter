@@ -275,3 +275,6 @@ msgstr ""
 
 msgid "Register Account"
 msgstr "Register Account"
+
+msgid "Login Gooroom"
+msgstr "Login Gooroom"

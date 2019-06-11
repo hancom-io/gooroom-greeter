@@ -1,0 +1,161 @@
+/*
+Theming samples for gooroom-greeter
+
+Below are two samples of what a greeter theme in Gtk3 could look like. For the first one, we're only using the gooroom-greeter style-class. This is best if you just want to set a simple color-scheme.
+For more fine-grain control, you can also use the named widgets. Those are being used in the second sample, because that gives you maximum control over the greeter.
+
+*/
+
+/*************************
+ * 1. Minimalistic theme *
+ *************************/
+
+* {
+  outline-color: transparent;
+  font-family: Sans Regular;
+  text-shadow: none;
+  -gtk-icon-effect: none;
+  -gtk-icon-shadow: none; }
+
+
+#cloud_window {
+  border: none;
+  border-radius: 10px 8px 8px 10px;
+  background-image: none;
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 8px 3px rgba(0, 0, 0, 0.85); }
+  #cloud_window #step_label {
+    color: #0000ff; }
+  #cloud_window #left_box {
+    border-radius: 8px 0 0 8px;
+    background-color: #1c1c1c; }
+
+/*
+menubar,
+.menubar {
+  -GtkWidget-window-dragging: true;
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0px;
+}
+
+menuitem {
+  padding: 0 3px 0 3px; }
+
+#panel_separator {
+  padding: 0 3px 0 3px;
+  background-color: transparent;
+  min-width: 1px;
+  min-height: 1px; }
+*/
+
+
+
+#panel_box {
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  min-height: 40px; }
+  #panel_box #panel_button {
+    color: #ffffff;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-image: none;
+    background-color: transparent; }
+    #panel_box #panel_button:hover {
+      background: rgba(255, 255, 255, 0.4); }
+    #panel_box #panel_button:active,
+    #panel_box #panel_button:checked  {
+      background: rgba(0, 255, 255, 0.6); }
+    #panel_box #panel_button:disabled {
+      color: @insensitive_fg_color; }
+  #panel_box #indicator_button {
+    color: #ffffff;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background-color: transparent; }
+    #panel_box #indicator_button:hover {
+      border: none;
+      background-color: rgba(255, 255, 255, 0.5); }
+    #panel_box #indicator_button:active,
+    #panel_box #indicator_button:checked {
+      background-color: rgba(0, 255, 255, 0.6); }
+
+#dialog {
+  border: none;
+  border-radius: 8px 8px 10px 10px;
+  background-image: none;
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 2px 8px 3px rgba(0, 0, 0, 0.85); }
+  #dialog #action_box {
+    padding: 5px 8px;
+    border: none;
+    border-radius: 0 0 8px 8px;
+    background-image: none;
+    background-color: #1c1c1c;
+    box-shadow: none; }
+  #dialog button {
+    color: #ffffff;
+    border: none;
+    padding: 5px 8px;
+    background-image: none;
+    background-color: transparent;
+    box-shadow: none; }
+    #dialog button:hover {
+      background: rgba(255, 255, 255, 0.4); }
+    #dialog button:active, #dialog button:checked {
+      background-clip: border-box;
+      background: rgba(0, 255, 255, 0.6); }
+
+#login_window {
+  min-height: 400px;
+  border-radius: 16px;
+  background-color: #1c1c1c;
+  box-shadow: 0 2px 8px 3px rgba(0, 0, 0, 0.85); }
+  #login_window #right_box {
+    padding: 40px;
+    color: #000000;;
+    border-radius: 0 16px 16px 0;
+    background-color: #ffffff; }
+  #login_window #login_button {
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    color: #ffffff;
+    box-shadow: none;
+    background-image: none;
+    background-color: #3986e1;}
+    #login_window #login_button:hover {
+      background-color: #69d3ff; }
+    #login_window #login_button:active, #login_window #login_button:checked {
+      background-color: #00b3fe; }
+  #login_window #prompt_entry {
+    min-height: 34px;
+    padding: 0 34px 0 6px;
+    color: #000000;
+    border: 1px solid rgba(201, 201, 201, 0.6);
+    border-radius: 5px;
+    background-image: none;
+    background-color: rgba(201, 201, 201, 0.6);
+    box-shadow: none; }
+    #login_window #prompt_entry:focus,
+    #login_window #prompt_entry:hover {
+      border-color: #4a90e2;
+      background-color: #ffffff; }
+/*
+    #login_window #prompt_entry:selected, #login_window #prompt_entry:selected:focus {
+      color: #ffffff;
+      background-color: #00b4fe; }
+*/
+
+#greeter_infobar {
+  background-color: transparent;
+  border-bottom-width: 0;
+  font-weight: bold; }
+  #greeter_infobar label {
+    color: #ff0000; }

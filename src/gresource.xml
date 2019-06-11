@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/kr/gooroom/greeter">
+		<file preprocess="xml-stripblanks">gooroom-greeter.ui</file>
+	</gresource>
+
+    <gresource prefix="/kr/gooroom/greeter">
+        <file compressed="true" alias="theme.css">../data/theme/theme.css</file>
+    </gresource>
+
+	<gresource prefix="/kr/gooroom/greeter">
+		<file alias="arrow.png">../data/images/arrow.png</file>
+		<file alias="google.svg">../data/images/google.svg</file>
+		<file alias="naver.png">../data/images/naver.png</file>
+		<file alias="password.png">../data/images/password.png</file>
+		<file alias="username.png">../data/images/username.png</file>
+		<file alias="logo-image.svg">../data/images/logo-image.svg</file>
+		<file alias="logo-letter-white.svg">../data/images/logo-letter-white.svg</file>
+		<file alias="logo-letter-black.svg">../data/images/logo-letter-black.svg</file>
+		<file alias="gooroom-greeter-bg.png">../data/images/gooroom-greeter-bg.png</file>
+	</gresource>
+</gresources>

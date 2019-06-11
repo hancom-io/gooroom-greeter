@@ -287,3 +287,6 @@ msgstr ""
 
 msgid "Register Account"
 msgstr "계정 등록"
+
+msgid "Login Gooroom"
+msgstr "구름에 로그인하세요"

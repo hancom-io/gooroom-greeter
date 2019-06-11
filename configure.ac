@@ -71,7 +71,6 @@ Makefile
 data/Makefile
 data/icons/Makefile
 data/images/Makefile
-data/themes/Makefile
 po/Makefile.in
 src/Makefile
 ])
