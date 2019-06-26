@@ -33,9 +33,6 @@ msgstr "기타"
 msgid "Guest Session"
 msgstr "손님 세션"
 
-msgid "Incorrect password, please try again"
-msgstr "암호가 올바르지 않습니다. 다시 입력해주십시오."
-
 msgid "Failed to authenticate"
 msgstr "인증에 실패하였습니다."
 
@@ -179,17 +176,17 @@ msgstr "새 암호 입력 :"
 msgid "Retype new password :"
 msgstr "새 암호 재입력 :"
 
-# 주의, Linux-PAM에 존재하는 "(current) UNIX password" 의 번역과 앞부분이 동일해야함
-msgid "(current) UNIX password"
-msgstr "(현재) UNIX 암호"
+# 주의, Linux-PAM의 "Current %s%spassword: "의 번역과 동일
+msgid "Current password: "
+msgstr "현재  암호:"
 
-# 주의, Linux-PAM에 존재하는 "Enter new UNIX password" 의 번역과 앞부분이 동일해야함
-msgid "Enter new UNIX password"
-msgstr "새 UNIX 암호 입력"
+# 주의, Linux-PAM의 "New %s%spassword: " 의 번역과 동일
+msgid "New password: "
+msgstr "새  암호:"
 
-# 주의, Linux-PAM에 존재하는 "Retype new UNIX password" 의 번역과 앞부분이 동일해야함
-msgid "Retype new UNIX password"
-msgstr "새 UNIX 암호 재입력"
+# 주의, Linux-PAM의 "Retype new %s%spassword: " 의 번역과 동일
+msgid "Retype new password: "
+msgstr "새  암호 재입력:"
 
 #, c-format
 msgid "Your password will expire in %s day\nDo you want to change password now?"
@@ -230,14 +227,16 @@ msgstr "중복로그인 알림"
 msgid "Duplicate logins detected with the same ID."
 msgstr "동일 아이디로 중복로그인이 감지되었습니다."
 
-msgid "Authentication Failure"
-msgstr "로그인 실패"
+msgid "Login Failure (Authentication Failure)"
+msgstr "로그인 실패 (사용자 인증 오류)"
 
 #, c-format
 msgid ""
+"Authentication Failure\n\n"
 "You have %s login attempts remaining.\n"
 "You can no longer log in when the maximum number of login attempts is exceeded."
 msgstr ""
+"로그인 실패 (사용자 인증 오류)\n\n"
 "로그인 시도 가능 횟수가 %s회 남았습니다.\n"
 "로그인 시도 최대 가능 횟수 초과시 더이상 로그인 할 수 없습니다."
 
@@ -255,7 +254,7 @@ msgid "Account Expiration Notification"
 msgstr "계정 만료 알림"
 
 msgid ""
-"This accout has expired and is no longer available.\n"
+"This account has expired and is no longer available.\n"
 "Please contact the administrator."
 msgstr ""
 "이 계정은 사용기간 만료로 더이상 사용할 수 없습니다.\n"

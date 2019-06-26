@@ -50,7 +50,6 @@
 #include "indicator-button.h"
 #include "greeterconfiguration.h"
 #include "greeterbackground.h"
-//#include "gooroom-greeter-ui.h"
 
 
 
@@ -115,7 +114,6 @@ static GtkButton    *msg_win_ok_button;
 static GtkLabel     *msg_win_msg_label, *msg_win_title_label;
 
 static GtkWidget    *last_show_win;
-//static GtkWidget    *cur_focused_widget;
 static gboolean      changing_password;
 
 static GDBusProxy   *gcl_proxy;
@@ -249,7 +247,7 @@ get_user_account_type (const char *user)
 	char **tokens = g_strsplit (user_entry->pw_gecos, ",", -1);
 	if (tokens && (g_strv_length (tokens) > 4)) {
 		if (tokens[4]) {
-			if (g_strcmp0 (tokens[4], "gooroom-online-account") == 0) {
+			if (g_strcmp0 (tokens[4], "gooroom-account") == 0) {
 				ret = LOGIN_GOOROOM;
 			} else if (g_strcmp0 (tokens[4], "google-account") == 0) {
 				ret = LOGIN_GOOGLE;
@@ -534,7 +532,6 @@ grab_focus_cb (gpointer data)
 	GtkWidget *focused = GTK_WIDGET (data);
 
 	gtk_widget_grab_focus (focused);
-//	cur_focused_widget = focused;
 
     return FALSE;
 }
@@ -703,19 +700,25 @@ static void
 notify_service_start (void)
 {
 	gchar **argv = NULL;
+	gchar **envp = NULL;
+	gchar *theme_name = NULL;
+	gchar *cmd = NULL;
+
 	g_shell_parse_argv (GOOROOM_NOTIFYD, NULL, &argv, NULL);
 
-	gchar *theme_name = NULL;
 	g_object_get (gtk_settings_get_default (), "gtk-theme-name", &theme_name, NULL);
 
-	gchar **envp = g_get_environ ();
+	envp = g_get_environ ();
 	envp = g_environ_setenv (envp, "GTK_THEME", theme_name, TRUE);
+
+	cmd = "/usr/bin/gsettings set apps.gooroom-notifyd notify-location 2";
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
-	g_free (theme_name);
 	g_strfreev (argv);
 	g_strfreev (envp);
+	g_free (theme_name);
 }
 
 static void
@@ -768,12 +771,9 @@ other_indicator_application_start (void)
 
 	guint i;
 	for (i = 0; app_indicators[i] != NULL; i++) {
-//		g_spawn_command_line_async (app_indicators[i], NULL);
 		gchar **argv = NULL;
 		g_shell_parse_argv (app_indicators[i], NULL, &argv, NULL);
-
 		g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-
 		g_strfreev (argv);
 	}
 
@@ -965,6 +965,14 @@ set_message_label (LightDMMessageType type, const gchar *text)
 }
 
 static void
+display_warning_message (LightDMMessageType type, const gchar *msg)
+{
+	set_message_label (type, msg);
+
+	start_authentication (lightdm_greeter_get_authentication_user (greeter));
+}
+
+static void
 show_login_window (GtkWidget *focus_widget)
 {
     hide_all_windows ();
@@ -1105,8 +1113,8 @@ process_prompts (LightDMGreeter *greeter)
         PAMConversationMessage *message = (PAMConversationMessage *) pending_questions->data;
         pending_questions = g_slist_remove (pending_questions, (gconstpointer) message);
 
-        const gchar *filter_msg1 = "You are required to change your password immediately";
-        const gchar *filter_msg2 = _("You are required to change your password immediately");
+        const gchar *filter_msg1 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
+        const gchar *filter_msg2 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
         const gchar *filter_msg3 = "Temporary Password";
         const gchar *filter_msg4 = "Password Expiration Warning";
         const gchar *filter_msg5 = "Account Expiration Warning";
@@ -1115,13 +1123,13 @@ process_prompts (LightDMGreeter *greeter)
         const gchar *filter_msg8 = "Account Locking";
         const gchar *filter_msg9 = "Account Expiration";
 
-        if ((strstr (message->text, filter_msg1) != NULL) ||
-             strstr (message->text, filter_msg2) != NULL) {
-            changing_password = TRUE;
-            show_ask_window (_("Password Expiration"),
-                _("Your password has expired.\nPlease change your password immediately."),
-                _("Changing Password"), _("Cancel"), "password_expiration");
-            continue;
+		if ((strstr (message->text, filter_msg1) != NULL) ||
+            (strstr (message->text, filter_msg2) != NULL)) {
+			changing_password = TRUE;
+			show_ask_window (_("Password Expiration"),
+					_("Your password has expired.\nPlease change your password immediately."),
+					_("Changing Password"), _("Cancel"), "password_expiration");
+			continue;
         } else if (g_str_has_prefix (message->text, filter_msg3)) {
             changing_password = TRUE;
             show_ask_window (_("Temporary Password Warning"),
@@ -1180,34 +1188,25 @@ process_prompts (LightDMGreeter *greeter)
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
-				msg = g_strdup_printf (_("You have %s login attempts remaining.\n"
+				msg = g_strdup_printf (_("Authentication Failure\n\nYou have %s login attempts remaining.\n"
 							"You can no longer log in when the maximum number of login attempts is exceeded."), tokens[1]);
 			}
 			g_strfreev (tokens);
-
-			show_msg_window (_("Authentication Failure"),
-					msg, _("Ok"), "AUTHENTICATION_FAILURE_OK");
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
-
-			continue;
+			break;
 		} else if (g_str_has_prefix (message->text, filter_msg8)) {
 			gchar *msg = g_strdup_printf (_("Your account has been locked because you have exceeded the number of login attempts.\n"
 						"Please contact the administrator."));
-
-			show_msg_window (_("Account Locking Notification"),
-					msg, _("Ok"), "ACCOUNT_LOCKING_OK");
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
-
-			continue;
+			break;
 		} else if (g_str_has_prefix (message->text, filter_msg9)) {
 			gchar *msg = g_strdup_printf (_("This account has expired and is no longer available.\n"
 						"Please contact the administrator."));
-
-			show_msg_window (_("Account Expiration Notification"),
-					msg, _("Ok"), "ACCOUNT_EXPIRATION_OK");
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
-
-			continue;
+			break;
 		}
 
         if (!message->is_prompt)
@@ -1223,40 +1222,32 @@ process_prompts (LightDMGreeter *greeter)
         }
 
         if (changing_password) {
-            const gchar *title;
-            const gchar *prompt_label;
-            if ((strstr (message->text, _("(current) UNIX password")) != 0) ||
-                (strstr (message->text, "(current) UNIX password") != 0) ||
-                (strstr (message->text, _("Enter current password")) != 0) ||
-                (strstr (message->text, "Enter current password") != 0) ||
-                (strstr (message->text, "Current password") != 0)) {
-                title = _("Changing Password - [Step 1]");
-                prompt_label = _("Enter current password :");
-            } else if ((strstr (message->text, _("Enter new UNIX password")) != 0) ||
-                       (strstr (message->text, "Enter new UNIX password") != 0) ||
-                       (strstr (message->text, _("Enter new password")) != 0) ||
-                       (strstr (message->text, "Enter new password") != 0) ||
-                       (strstr (message->text, "New password") != 0)) {
-                title = _("Changing Password - [Step 2]");
-                prompt_label = _("Enter new password :");
-            } else if ((strstr (message->text, _("Retype new UNIX password")) != 0) ||
-                       (strstr (message->text, "Retype new UNIX password") != 0) ||
-                       (strstr (message->text, _("Retype new password")) != 0) ||
-                       (strstr (message->text, "Retype new password") != 0)) {
-                title = _("Changing Password - [Step 3]");
-                prompt_label = _("Retype new password :");
-            } else {
-                title = NULL;
-                prompt_label = NULL;
-            }
-            gtk_label_set_text (pw_set_win_title_label, (title != NULL) ? title : "");
-            gtk_label_set_text (pw_set_win_prompt_label, (prompt_label != NULL) ? prompt_label : "");
-            gtk_entry_set_text (pw_set_win_prompt_entry, "");
-            gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
-        } else {
-            gtk_widget_show (login_win_pw_entry);
-            gtk_widget_grab_focus (login_win_pw_entry);
-            gtk_entry_set_text (GTK_ENTRY (login_win_pw_entry), "");
+			const gchar *title;
+			const gchar *prompt_label;
+			if ((strstr (message->text, "Current password:") != 0) ||
+                (strstr (message->text, _("Current password: ")) != 0)) {
+				title = _("Changing Password - [Step 1]");
+				prompt_label = _("Enter current password :");
+			} else if ((strstr (message->text, "New password:") != 0) ||
+			           (strstr (message->text, _("New password: ")) != 0)) {
+				title = _("Changing Password - [Step 2]");
+				prompt_label = _("Enter new password :");
+			} else if ((strstr (message->text, "Retype new password:") != 0) ||
+                       (strstr (message->text, _("Retype new password: ")) != 0)) {
+				title = _("Changing Password - [Step 3]");
+				prompt_label = _("Retype new password :");
+			} else {
+				title = NULL;
+				prompt_label = NULL;
+			}
+			gtk_label_set_text (pw_set_win_title_label, (title != NULL) ? title : "");
+			gtk_label_set_text (pw_set_win_prompt_label, (prompt_label != NULL) ? prompt_label : "");
+			gtk_entry_set_text (pw_set_win_prompt_entry, "");
+			gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
+		} else {
+			gtk_widget_show (login_win_pw_entry);
+			gtk_widget_grab_focus (login_win_pw_entry);
+			gtk_entry_set_text (GTK_ENTRY (login_win_pw_entry), "");
 #if 0
             if (message_label_is_empty () && password_prompted)
             {
@@ -1277,7 +1268,6 @@ process_prompts (LightDMGreeter *greeter)
                     g_free (str);
             }
 #endif
-            gtk_widget_grab_focus (login_win_pw_entry);
         }
 
         prompted = TRUE;
@@ -1367,15 +1357,13 @@ start_session (void)
     /* Remember last choice */
     config_set_string (STATE_SECTION_GREETER, STATE_KEY_LAST_SESSION, session);
 
-    greeter_background_save_xroot (greeter_background);
+//    greeter_background_save_xroot (greeter_background);
 
     if (!lightdm_greeter_start_session_sync (greeter, session, NULL))
     {
         set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Failed to start session"));
         start_authentication (lightdm_greeter_get_authentication_user (greeter));
-    } else {
-		g_spawn_command_line_async (GOOROOM_SPLASH, NULL);
-	}
+    }
 
     g_free (session);
 }
@@ -1537,11 +1525,6 @@ cmd_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 			gtk_widget_grab_focus (GTK_WIDGET (ask_win_ok_button));
 		} else if (last_show_win == pw_set_win) {
 			gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
-		} else {
-//            hide_all_windows ();
-//            gtk_widget_show_all (last_show_win);
-
-//			g_timeout_add (50, grab_focus_cb, cur_focused_widget);
 		}
 
 		return;
@@ -1681,12 +1664,7 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 			lightdm_greeter_respond (greeter, "duplicate_login_ok");
 #endif
 		}
-    } else if (g_str_equal (data, "AUTHENTICATION_FAILURE_OK") ||
-               g_str_equal (data, "ACCOUNT_EXPIRATION_OK") ||
-               g_str_equal (data, "ACCOUNT_LOCKING_OK")) {
-		show_login_window (login_win_pw_entry);
-		start_authentication (lightdm_greeter_get_authentication_user (greeter));
-	}
+    }
 }
 
 gboolean
@@ -1775,51 +1753,51 @@ authentication_complete_cb (LightDMGreeter *greeter)
 		return;
 	}
 
-    prompt_active = FALSE;
-    gtk_entry_set_text (GTK_ENTRY (login_win_pw_entry), "");
+	prompt_active = FALSE;
+	gtk_entry_set_text (GTK_ENTRY (login_win_pw_entry), "");
 
-    if (pending_questions)
-    {
-        g_slist_free_full (pending_questions, (GDestroyNotify) pam_message_finalize);
-        pending_questions = NULL;
-    }
+	if (pending_questions)
+	{
+		g_slist_free_full (pending_questions, (GDestroyNotify) pam_message_finalize);
+		pending_questions = NULL;
+	}
 
-    if (lightdm_greeter_get_is_authenticated (greeter))
-    {
-        if (prompted)
-            start_session ();
-        else
-        {
-            gtk_widget_hide (login_win_pw_entry);
-        }
-    }
-    else
-    {
-        /* If an error message is already printed we do not print it this statement
-         * The error message probably comes from the PAM module that has a better knowledge
-         * of the failure. */
-        gboolean have_pam_error = !message_label_is_empty () &&
-                                  gtk_info_bar_get_message_type (login_win_infobar) != GTK_MESSAGE_ERROR;
-        if (prompted)
-        {
-            if (!have_pam_error)
-                set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Incorrect password, please try again"));
-            start_authentication (lightdm_greeter_get_authentication_user (greeter));
-        }
-        else
-        {
-            g_warning ("Failed to authenticate");
-            if (!have_pam_error)
-                set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Failed to authenticate"));
-        }
+	if (lightdm_greeter_get_is_authenticated (greeter))
+	{
+		if (prompted)
+			start_session ();
+		else
+		{
+			gtk_widget_hide (login_win_pw_entry);
+		}
+	}
+	else
+	{
+		/* If an error message is already printed we do not print it this statement
+		 * The error message probably comes from the PAM module that has a better knowledge
+		 * of the failure. */
+		gboolean have_pam_error = !message_label_is_empty () &&
+			gtk_info_bar_get_message_type (login_win_infobar) != GTK_MESSAGE_ERROR;
+		if (prompted)
+		{
+			if (!have_pam_error)
+				set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Login Failure (Authentication Failure)"));
+			start_authentication (lightdm_greeter_get_authentication_user (greeter));
+		}
+		else
+		{
+			g_warning ("Failed to authenticate");
+			if (!have_pam_error)
+				set_message_label (LIGHTDM_MESSAGE_TYPE_ERROR, _("Failed to authenticate"));
+		}
 
-        if (changing_password) {
-            show_msg_window (_("Failure Of Changing Password"),
-                             _("Failed to change password.\nPlease try again."),
-                             _("Ok"),
-                             "FAILURE_CHPASSWD");
-        }
-    }
+		if (changing_password) {
+			show_msg_window (_("Failure Of Changing Password"),
+					_("Failed to change password.\nPlease try again."),
+					_("Ok"),
+					"FAILURE_CHPASSWD");
+		}
+	}
 }
 
 static gboolean
@@ -2380,7 +2358,6 @@ main (int argc, char **argv)
     GtkBuilder *builder;
     const GList *items, *item;
     gchar *value;
-//    GError *error = NULL;
     int ret = EXIT_SUCCESS;
 
     /* Prevent memory from being swapped out, as we are dealing with passwords */
@@ -2446,8 +2423,7 @@ main (int argc, char **argv)
 	if (value)
 	{
 		g_debug ("[Configuration] Changing GTK+ theme to '%s'", value);
-//		g_object_set (gtk_settings_get_default (), "gtk-theme-name", value, NULL);
-		g_object_set (gtk_settings_get_default (), "gtk-theme-name", "Adapta", NULL);
+		g_object_set (gtk_settings_get_default (), "gtk-theme-name", value, NULL);
 		g_free (value);
 	}
     g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);

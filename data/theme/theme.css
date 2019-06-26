@@ -31,27 +31,6 @@ For more fine-grain control, you can also use the named widgets. Those are being
     border-radius: 8px 0 0 8px;
     background-color: #1c1c1c; }
 
-/*
-menubar,
-.menubar {
-  -GtkWidget-window-dragging: true;
-  background-color: transparent;
-  color: #ffffff;
-  padding: 0px;
-}
-
-menuitem {
-  padding: 0 3px 0 3px; }
-
-#panel_separator {
-  padding: 0 3px 0 3px;
-  background-color: transparent;
-  min-width: 1px;
-  min-height: 1px; }
-*/
-
-
-
 #panel_box {
   border: none;
   box-shadow: none;
@@ -86,6 +65,7 @@ menuitem {
       background-color: rgba(0, 255, 255, 0.6); }
 
 #dialog {
+  min-width: 320px;
   border: none;
   border-radius: 8px 8px 10px 10px;
   background-image: none;
@@ -93,12 +73,15 @@ menuitem {
   color: #000000;
   box-shadow: 0 2px 8px 3px rgba(0, 0, 0, 0.85); }
   #dialog #action_box {
-    padding: 5px 8px;
+    padding: 8px;
     border: none;
     border-radius: 0 0 8px 8px;
     background-image: none;
     background-color: #1c1c1c;
     box-shadow: none; }
+  #dialog #message_label {
+    min-height: 40px;
+    min-width: 480px; }
   #dialog button {
     color: #ffffff;
     border: none;
@@ -114,6 +97,7 @@ menuitem {
 
 #login_window {
   min-height: 400px;
+  min-width: 560px;
   border-radius: 16px;
   background-color: #1c1c1c;
   box-shadow: 0 2px 8px 3px rgba(0, 0, 0, 0.85); }

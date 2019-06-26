@@ -33,9 +33,6 @@ msgstr "Other"
 msgid "Guest Session"
 msgstr "Guest Session"
 
-msgid "Incorrect password, please try again"
-msgstr "Incorrect password, please try again"
-
 msgid "Failed to authenticate"
 msgstr "Failed to authenticate"
 
@@ -170,14 +167,14 @@ msgstr "Enter new password :"
 msgid "Retype new password :"
 msgstr "Retype new password :"
 
-msgid "(current) UNIX password"
-msgstr "(current) UNIX password"
+msgid "Current password: "
+msgstr "Current password:"
 
-msgid "Enter new UNIX password"
-msgstr "Enter new UNIX password"
+msgid "New password: "
+msgstr "New  password:"
 
-msgid "Retype new UNIX password"
-msgstr "Retype new UNIX password"
+msgid "Retype new password: "
+msgstr "Retype new password:"
 
 #, c-format
 msgid "Your password will expire in %d day\nDo you want to change password now?"
@@ -218,14 +215,16 @@ msgstr "Duplicate Login Notification"
 msgid "Duplicate logins detected with the same ID."
 msgstr "Duplicate logins detected with the same ID."
 
-msgid "Authentication Failure"
-msgstr "Authentication Failure"
+msgid "Login Failure (Authentication Failure)"
+msgstr "Login Failure (Authentication Failure)"
 
 #, c-format
 msgid ""
+"Authentication Failure\n\n"
 "You have %s login attempts remaining.\n"
 "You can no longer log in when the maximum number of login attempts is exceeded."
 msgstr ""
+"Authentication Failure\n\n"
 "You have %s login attempts remaining.\n"
 "You can no longer log in when the maximum number of login attempts is exceeded."
 
@@ -243,10 +242,10 @@ msgid "Account Expiration Notification"
 msgstr "Account Expiration Notification"
 
 msgid ""
-"This accout has expired and is no longer available.\n"
+"This account has expired and is no longer available.\n"
 "Please contact the administrator."
 msgstr ""
-"This accout has expired and is no longer available.\n"
+"This account has expired and is no longer available.\n"
 "Please contact the administrator."
 
 msgid "<span size=\"xx-large\"><b>Step 1</b></span>"

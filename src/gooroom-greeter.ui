@@ -831,8 +831,8 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
                     <property name="position">-1</property>
                   </packing>
                 </child>
@@ -846,6 +846,8 @@
                         <property name="label" comments="This is a placeholder string and will be replaced with a message from PAM">[message]</property>
                         <property name="wrap">True</property>
                         <property name="wrap_mode">char</property>
+                        <property name="max_width_chars">1</property>
+                        <property name="xalign">0</property>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -855,7 +857,7 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
+                    <property name="expand">True</property>
                     <property name="fill">True</property>
                     <property name="position">-1</property>
                   </packing>
@@ -1251,6 +1253,7 @@
     <property name="name">dialog</property>
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
+    <signal name="key-press-event" handler="pw_set_win_key_press_event_cb" swapped="no"/>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -1333,9 +1336,12 @@
             </child>
             <child>
               <object class="GtkLabel" id="pw_set_win_msg_label">
+                <property name="name">message_label</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
+                <property name="wrap">True</property>
+                <property name="max_width_chars">1</property>
+                <property name="xalign">0</property>
                 <attributes>
                   <attribute name="style" value="italic"/>
                   <attribute name="weight" value="bold"/>
@@ -1344,14 +1350,14 @@
                 </attributes>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
@@ -1476,12 +1482,10 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="halign">start</property>
                 <property name="label" translatable="yes">Please enter your cloud account to register for this system.</property>
                 <property name="use_markup">True</property>
                 <property name="wrap">True</property>
-                <property name="width_chars">32</property>
-                <property name="max_width_chars">32</property>
+                <property name="max_width_chars">1</property>
                 <property name="xalign">0</property>
               </object>
               <packing>
@@ -1506,19 +1510,19 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_markup">True</property>
-                <property name="width_chars">48</property>
-                <property name="max_width_chars">48</property>
+                <property name="wrap">True</property>
+                <property name="max_width_chars">1</property>
                 <property name="xalign">0</property>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">2</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
