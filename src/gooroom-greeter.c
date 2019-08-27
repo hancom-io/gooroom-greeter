@@ -1221,25 +1221,29 @@ process_prompts (LightDMGreeter *greeter)
             continue;
         }
 
+
         if (changing_password) {
 			const gchar *title;
 			const gchar *prompt_label;
-			if ((strstr (message->text, "Current password:") != 0) ||
-                (strstr (message->text, _("Current password: ")) != 0)) {
+
+			/* for pam-gooroom and Linux-PAM, libpwquality */
+			if ((strstr (message->text, "Current password: ") != NULL) ||
+					(strstr (message->text, _("Current password: ")) != NULL)) {
 				title = _("Changing Password - [Step 1]");
 				prompt_label = _("Enter current password :");
-			} else if ((strstr (message->text, "New password:") != 0) ||
-			           (strstr (message->text, _("New password: ")) != 0)) {
+			} else if ((strstr (message->text, "New password: ") != NULL) ||
+					(strstr (message->text, _("New password: ")) != NULL)) {
 				title = _("Changing Password - [Step 2]");
 				prompt_label = _("Enter new password :");
-			} else if ((strstr (message->text, "Retype new password:") != 0) ||
-                       (strstr (message->text, _("Retype new password: ")) != 0)) {
+			} else if ((strstr (message->text, "Retype new password: ") != NULL) ||
+					(strstr (message->text, _("Retype new password: ")) != NULL)) {
 				title = _("Changing Password - [Step 3]");
 				prompt_label = _("Retype new password :");
 			} else {
 				title = NULL;
 				prompt_label = NULL;
 			}
+
 			gtk_label_set_text (pw_set_win_title_label, (title != NULL) ? title : "");
 			gtk_label_set_text (pw_set_win_prompt_label, (prompt_label != NULL) ? prompt_label : "");
 			gtk_entry_set_text (pw_set_win_prompt_entry, "");

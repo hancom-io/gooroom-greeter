@@ -176,15 +176,15 @@ msgstr "새 암호 입력 :"
 msgid "Retype new password :"
 msgstr "새 암호 재입력 :"
 
-# 주의, Linux-PAM의 "Current %s%spassword: "의 번역과 동일
+# 주의, Linux-PAM 의 "Current %s%spassword: "의 번역과 동일
 msgid "Current password: "
 msgstr "현재  암호:"
 
-# 주의, Linux-PAM의 "New %s%spassword: " 의 번역과 동일
+# 주의, Linux-PAM / libpwquality의 "New %s%spassword: " 의 번역과 동일
 msgid "New password: "
 msgstr "새  암호:"
 
-# 주의, Linux-PAM의 "Retype new %s%spassword: " 의 번역과 동일
+# 주의, Linux-PAM / libpwquality의 "Retype new %s%spassword: " 의 번역과 동일
 msgid "Retype new password: "
 msgstr "새  암호 재입력:"
 
