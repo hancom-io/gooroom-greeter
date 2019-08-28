@@ -1375,10 +1375,9 @@ start_session (void)
 gboolean
 login_win_username_entry_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
-    if (!g_strcmp0 (gtk_entry_get_text (GTK_ENTRY (login_win_username_entry)), "") == 0)
-        start_authentication (gtk_entry_get_text (GTK_ENTRY (login_win_username_entry)));
+	start_authentication (gtk_entry_get_text (GTK_ENTRY (login_win_username_entry)));
 
-    return FALSE;
+	return FALSE;
 }
 
 gboolean
