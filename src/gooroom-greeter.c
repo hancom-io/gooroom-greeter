@@ -1375,7 +1375,8 @@ start_session (void)
 gboolean
 login_win_username_entry_focus_out_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
-	start_authentication (gtk_entry_get_text (GTK_ENTRY (login_win_username_entry)));
+	if (gtk_widget_get_visible (login_win))
+		start_authentication (gtk_entry_get_text (GTK_ENTRY (login_win_username_entry)));
 
 	return FALSE;
 }
@@ -2061,13 +2062,13 @@ go_to_login_step3 (GtkButton *button, gpointer data)
 static void
 on_register_account_clicked_cb (GtkButton *button, gpointer data)
 {
-    gtk_entry_set_text (GTK_ENTRY (user_reg_win_ent), "");
+	gtk_entry_set_text (GTK_ENTRY (user_reg_win_ent), "");
 
 	gtk_widget_hide (cloud_win);
 	gtk_widget_show_all (user_reg_win);
-    last_show_win = user_reg_win;
+	last_show_win = user_reg_win;
 
-    gtk_widget_grab_focus (user_reg_win_ent);
+	gtk_widget_grab_focus (user_reg_win_ent);
 }
 
 static void
