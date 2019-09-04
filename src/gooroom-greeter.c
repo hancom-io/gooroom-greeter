@@ -52,6 +52,7 @@
 #include "greeterbackground.h"
 
 
+#define MAX_USERNAME_LEN  32
 
 static LightDMGreeter *greeter;
 
@@ -1044,7 +1045,6 @@ set_session (const gchar *session)
 }
 
 /* Session language */
-
 static gchar*
 get_language (void)
 {
@@ -2063,6 +2063,7 @@ static void
 on_register_account_clicked_cb (GtkButton *button, gpointer data)
 {
 	gtk_entry_set_text (GTK_ENTRY (user_reg_win_ent), "");
+	gtk_label_set_text (GTK_LABEL (user_reg_win_err_lbl), "");
 
 	gtk_widget_hide (cloud_win);
 	gtk_widget_show_all (user_reg_win);
@@ -2142,6 +2143,82 @@ create_user_done_cb (gpointer data)
 	return FALSE;
 }
 
+static gboolean
+is_user_exist (const gchar *user)
+{
+	const gchar *suffix = "";
+	if (login_type == LOGIN_GOOGLE) {
+		if (g_str_has_suffix (user, "@gmail.com") == FALSE) {
+			suffix = "@gmail.com";
+		}
+	} else if (login_type == LOGIN_NAVER) {
+		if (g_str_has_suffix (user, "@naver.com") == FALSE) {
+			suffix = "@naver.com";
+		}
+	}
+
+	gchar *_user = g_strdup_printf ("%s%s", user, suffix);
+
+	/* find user */
+	GList *l = NULL;
+	GList *items = lightdm_user_list_get_users (lightdm_user_list_get_instance ());
+	for (l = items; l ; l = l->next) {
+		LightDMUser *ldm_user = (LightDMUser *)l->data;
+		if (g_str_equal (_user, lightdm_user_get_name (ldm_user))) {
+			return TRUE;
+		}
+	}
+	g_free (_user);
+
+	return FALSE;
+}
+
+static gboolean
+is_username_valid (const gchar *user, gchar **error)
+{
+	gboolean valid = TRUE;
+
+	if (!user || strlen (user) <= 0) {
+		*error = g_strdup (_("A user name must start with a letter."));
+		return FALSE;
+	}
+
+	if (*user == '-') {
+		*error = g_strdup (_("A user name cannot start with a “-”."));
+		return FALSE;
+	}
+
+	/* First char must be a letter, and it must only composed
+	 * of ASCII letters, digits, and a '.', '-', '_'
+	 */
+	const gchar *c;
+	for (c = user; *c; c++) {
+		if (!((*c >= 'a' && *c <= 'z') ||
+              (*c >= 'A' && *c <= 'Z') ||
+              (*c >= '0' && *c <= '9') ||
+              (*c == '_') || (*c == '.') || (*c == '-') || (*c == '@'))) {
+			valid = FALSE;
+		}
+	}
+
+	if (!valid) {
+		*error = g_strdup (_("A user name should only consist of upper and lower case letters from a-z, digits and the following characters: \".\", \"-\", \"_\", \"@\""));
+		return FALSE;
+	}
+
+	if (strlen (user) > MAX_USERNAME_LEN) {
+		*error = g_strdup_printf (_("A user name is too long."));
+		return FALSE;
+	}
+
+	if (is_user_exist (user)) {
+		*error = g_strdup (_("A user with this name already exists.\n"
+                             "Please choose a different name for the new user."));
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 static void
 create_user (const gchar *user)
@@ -2181,56 +2258,22 @@ static void
 on_user_reg_ok_button_clicked_cb (GtkButton *button, gpointer data)
 {
 	const gchar *user;
-	gboolean valid = FALSE;
-
-	const gchar *empty_notice = _("User name must start with a letter.");
-	const gchar *letter_notice = _("Login name must consist of\n"
-                                   "  ➣ lower case letters from the English alphabet\n"
-                                   "  ➣ digits\n"
-                                   "  ➣ any of the characters \".\", \"-\" and \"_\"");
-	const gchar *exists_notice = _("A user with this name already exists.\n"
-                                   "Please choose a different name for the new user.");
+	gchar *error = NULL;
+	gchar *markup = NULL;
 
 	user = gtk_entry_get_text (GTK_ENTRY (user_reg_win_ent));
 
-	if (strlen (user) <= 0) {
-        gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", empty_notice);
+	if (!is_username_valid (user, &error)) {
+		markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", error);
 		gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
 		g_free (markup);
-		return;
-	}
-
-	/* find user */
-	GList *l = NULL;
-	GList *items = lightdm_user_list_get_users (lightdm_user_list_get_instance ());
-	for (l = items; l ; l = l->next) {
-		LightDMUser *ldm_user = (LightDMUser *)l->data;
-		if (g_str_equal (user, lightdm_user_get_name (ldm_user))) {
-            gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", exists_notice);
-            gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
-            g_free (markup);
-			return;
-		}
-	}
-
-	/* first char of a login must be a letter, and it must only composed
-	 * of ASCII letters, digits, and a '.', '-', '_' */
-    if (g_ascii_islower (*user) || g_ascii_isdigit (*user) ||
-        *user == '.' || *user == '-' || *user == '_' ) {
-        valid = TRUE;
-    }
-
-	if (!valid) {
-        gchar *markup = g_markup_printf_escaped ("<span color=\"red\"><i>%s</i></span>", letter_notice);
-		gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
-        g_free (markup);
 		return;
 	}
 
 	/* create user */
 	create_user (user);
 
-    gchar *markup = g_strdup ("<span color=\"red\"><i>Creating user...</i></span>");
+    markup = g_strdup_printf ("<span color=\"red\"><i>%s</i></span>", _("Creating user..."));
     gtk_label_set_markup (GTK_LABEL (user_reg_win_err_lbl), markup);
     g_free (markup);
 
@@ -2487,10 +2530,6 @@ main (int argc, char **argv)
 	login_win_infobar = GTK_INFO_BAR (gtk_builder_get_object (builder, "login_win_infobar"));
 	login_win_msg_label = GTK_LABEL (gtk_builder_get_object (builder, "login_win_msg_label"));
 	login_win_login_button = GTK_BUTTON (gtk_builder_get_object (builder, "login_win_login_button"));
-	GtkLabel *login_title = GTK_LABEL (gtk_builder_get_object (builder, "login_win_title"));
-	gchar *markup = g_markup_printf_escaped ("<span font=\"18px\"><b>%s</b></span>", _("Login Gooroom"));
-	gtk_label_set_markup (login_title, markup);
-	g_free (markup);
 
     /* Bottom panel */
 	panel_box = GTK_WIDGET (gtk_builder_get_object (builder, "panel_box"));
