@@ -30,10 +30,6 @@ PKG_CHECK_MODULES(JSON_GLIB, [json-glib-1.0])
 PKG_CHECK_MODULES(AYATANA_INDICATOR_NG, ayatana-indicator3-0.4 >= 0.6.0
                                         libayatana-ido3-0.4 >= 0.4.0)
 
-#PKG_CHECK_MODULES(LIBSOUP, [libsoup-2.4 >= 2.42])
-#INDICATOR_PKGNAME=indicator3-0.4
-#PKG_CHECK_MODULES([INDICATOR], [${INDICATOR_PKGNAME}], [12.10.1])
-
 AC_CHECK_PROG([HAVE_EXO_CSOURCE], [exo-csource], [yes])
 if test x"$HAVE_EXO_CSOURCE" != xyes; then
   AC_MSG_FAILURE([exo-csource not installed])

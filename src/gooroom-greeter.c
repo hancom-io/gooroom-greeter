@@ -225,11 +225,11 @@ static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
 
 static void
-killall_chromium (const char *user)
+killall_browser (const char *user)
 {
 	gchar *cmd = NULL;
 
-	cmd = g_strdup_printf ("%s %s", CHROMIUM_KILLALL, user);
+	cmd = g_strdup_printf ("%s %s", BROWSER_KILLALL, user);
 
 	g_spawn_command_line_async (cmd, NULL);
 
@@ -645,15 +645,16 @@ on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 
 			if (row) {
 				gchar *id = g_object_get_data (G_OBJECT (row), "name");
-				killall_chromium (id);
+				killall_browser (id);
 			}
 
 			hide_all_windows ();
 			gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
 			gtk_widget_show (cloud_win);
 			last_show_win = cloud_win;
+
+			return;
 		}
-		return;
 
 		case SYSTEM_SHUTDOWN:
 			img = "gooroom-greeter-shutdown-symbolic";
@@ -1837,7 +1838,7 @@ cloud_login_signal_handler (GDBusProxy *proxy,
 			if (!auth_code || (strlen (auth_code) == 0)) {
 				GtkListBoxRow *row = gtk_list_box_get_selected_row (GTK_LIST_BOX (listbox_cloud_user));
 				gchar *id = g_object_get_data (G_OBJECT (row), "name");
-				killall_chromium (id);
+				killall_browser (id);
 
 				gtk_stack_set_visible_child_name (GTK_STACK (stack_cloud_win), "login-step1");
 				gtk_widget_show (cloud_win);
@@ -1852,7 +1853,7 @@ cloud_login_signal_handler (GDBusProxy *proxy,
 }
 
 static void
-chromium_process_watch_cb (GPid pid, gint status, gpointer user_data)
+browser_process_watch_cb (GPid pid, gint status, gpointer user_data)
 {
 	g_spawn_close_pid (pid);
 
@@ -2024,7 +2025,7 @@ go_to_login_step3 (GtkButton *button, gpointer data)
 				"--window-size=%s "
 				"--window-position=%s "
 				"--disable-features=TranslateUI "
-				"--app=%s", CHROMIUM_PKEXEC, id, winsize, winpos, url);
+				"--app=%s", BROWSER_PKEXEC, id, winsize, winpos, url);
 
 		gchar **argv = g_strsplit (cmd, " ", -1);
 
@@ -2043,7 +2044,7 @@ go_to_login_step3 (GtkButton *button, gpointer data)
 			gtk_widget_set_sensitive (btn_suspend, FALSE);
 			gtk_widget_set_sensitive (btn_hibernate, FALSE);
 
-			g_child_watch_add (pid, chromium_process_watch_cb, NULL);
+			g_child_watch_add (pid, browser_process_watch_cb, NULL);
 		}
 
 		g_free (theme_name);

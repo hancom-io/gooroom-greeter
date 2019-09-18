@@ -7,5 +7,5 @@
 
 xhost +
 export SHELL=/bin/bash
-pkexec --user $1 --disable-internal-agent chromium $2 $3 $4 $5 $6
+pkexec --user $1 --disable-internal-agent gooroom-browser $2 $3 $4 $5 $6
 xhost -

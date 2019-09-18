@@ -1,4 +1,4 @@
-pkglibexec_SCRIPTS = chromium-pkexec chromium-killall
+pkglibexec_SCRIPTS = browser-pkexec browser-killall
 
 sbin_PROGRAMS = gooroom-greeter
 
@@ -29,8 +29,8 @@ AM_CPPFLAGS = \
 	-DPKGDATA_DIR=\"$(pkgdatadir)\" \
 	-DCONFIG_FILE=\"$(sysconfdir)/lightdm/gooroom-greeter.conf\" \
 	-DINDICATOR_DIR=\"$(INDICATORDIR)\"	\
-	-DCHROMIUM_PKEXEC=\"$(pkglibexecdir)/chromium-pkexec\" \
-	-DCHROMIUM_KILLALL=\"$(pkglibexecdir)/chromium-killall\" \
+	-DBROWSER_PKEXEC=\"$(pkglibexecdir)/browser-pkexec\" \
+	-DBROWSER_KILLALL=\"$(pkglibexecdir)/browser-killall\" \
 	-DGOOROOM_SPLASH=\"$(libdir)/gooroom-splash/gooroom-splash\" \
 	-DGOOROOM_NOTIFYD=\"$(libdir)/gooroom-notifyd/gooroom-notifyd\" \
 	$(WARN_CFLAGS)
@@ -43,7 +43,6 @@ gooroom_greeter_CFLAGS = \
 	$(UPOWER_CFLAGS) \
 	$(GTHREAD_CFLAGS) \
 	$(LIGHTDMGOBJECT_CFLAGS) \
-	$(INDICATOR_CFLAGS) \
 	$(LIBX11_CFLAGS) \
     $(AYATANA_INDICATOR_NG_CFLAGS) \
 	$(JSON_GLIB_CFLAGS)
@@ -56,7 +55,6 @@ gooroom_greeter_LDADD = \
 	$(UPOWER_LIBS) \
 	$(GTHREAD_LIBS) \
 	$(LIGHTDMGOBJECT_LIBS) \
-	$(INDICATOR_LIBS) \
 	$(LIBX11_LIBS) \
 	$(JSON_GLIB_LIBS) \
 	$(AYATANA_INDICATOR_NG_LIBS) \
