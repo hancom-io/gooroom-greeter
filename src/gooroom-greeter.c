@@ -1114,30 +1114,31 @@ process_prompts (LightDMGreeter *greeter)
         PAMConversationMessage *message = (PAMConversationMessage *) pending_questions->data;
         pending_questions = g_slist_remove (pending_questions, (gconstpointer) message);
 
-        const gchar *filter_msg1 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
-        const gchar *filter_msg2 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
-        const gchar *filter_msg3 = "Temporary Password";
-        const gchar *filter_msg4 = "Password Expiration Warning";
-        const gchar *filter_msg5 = "Account Expiration Warning";
-        const gchar *filter_msg6 = "Duplicate Login Notification";
-        const gchar *filter_msg7 = "Authentication Failure";
-        const gchar *filter_msg8 = "Account Locking";
-        const gchar *filter_msg9 = "Account Expiration";
+        const gchar *filter_msg_01 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
+        const gchar *filter_msg_02 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
+        const gchar *filter_msg_03 = "Temporary Password";
+        const gchar *filter_msg_04 = "Password Expiration Warning";
+        const gchar *filter_msg_05 = "Account Expiration Warning";
+        const gchar *filter_msg_06 = "Duplicate Login Notification";
+        const gchar *filter_msg_07 = "Authentication Failure";
+        const gchar *filter_msg_08 = "Account Locking";
+        const gchar *filter_msg_09 = "Account Expiration";
+        const gchar *filter_msg_10 = "Password Expiration";
 
-		if ((strstr (message->text, filter_msg1) != NULL) ||
-            (strstr (message->text, filter_msg2) != NULL)) {
+		if ((strstr (message->text, filter_msg_01) != NULL) ||
+            (strstr (message->text, filter_msg_02) != NULL)) {
 			changing_password = TRUE;
 			show_ask_window (_("Password Expiration"),
 					_("Your password has expired.\nPlease change your password immediately."),
 					_("Changing Password"), _("Cancel"), "password_expiration");
 			continue;
-        } else if (g_str_has_prefix (message->text, filter_msg3)) {
+        } else if (g_str_has_prefix (message->text, filter_msg_03)) {
             changing_password = TRUE;
             show_ask_window (_("Temporary Password Warning"),
                 _("Your password has been issued temporarily.\nFor security reasons, please change your password immediately."),
                 _("Changing Password"), _("Cancel"), "password_expiration");
             continue;
-        } else if (g_str_has_prefix (message->text, filter_msg4)) {
+        } else if (g_str_has_prefix (message->text, filter_msg_04)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
@@ -1156,7 +1157,7 @@ process_prompts (LightDMGreeter *greeter)
             g_free (msg);
 
             continue;
-        } else if (g_str_has_prefix (message->text, filter_msg5)) {
+        } else if (g_str_has_prefix (message->text, filter_msg_05)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 2) {
@@ -1177,7 +1178,7 @@ process_prompts (LightDMGreeter *greeter)
             g_free (msg);
 
             continue;
-		} else if (g_str_has_prefix (message->text, filter_msg6)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_06)) {
 			gchar *msg = g_strdup (_("Duplicate logins detected with the same ID."));
 
 			show_msg_window (_("Duplicate Login Notification"),
@@ -1185,7 +1186,7 @@ process_prompts (LightDMGreeter *greeter)
 			g_free (msg);
 
 			continue;
-		} else if (g_str_has_prefix (message->text, filter_msg7)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_07)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
@@ -1196,14 +1197,20 @@ process_prompts (LightDMGreeter *greeter)
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
-		} else if (g_str_has_prefix (message->text, filter_msg8)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_08)) {
 			gchar *msg = g_strdup_printf (_("Your account has been locked because you have exceeded the number of login attempts.\n"
 						"Please contact the administrator."));
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
-		} else if (g_str_has_prefix (message->text, filter_msg9)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_09)) {
 			gchar *msg = g_strdup_printf (_("This account has expired and is no longer available.\n"
+						"Please contact the administrator."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_10)) {
+			gchar *msg = g_strdup_printf (_("The password for your account has expired.\n"
 						"Please contact the administrator."));
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);

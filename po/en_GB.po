@@ -201,6 +201,15 @@ msgstr ""
 "This account has expired and is no longer available.\n"
 "Please contact the administrator."
 
+#: ../src/gooroom-greeter.c:1213
+#, c-format
+msgid ""
+"The password for your account has expired.\n"
+"Please contact the administrator."
+msgstr ""
+"The password for your account has expired.\n"
+"Please contact the administrator."
+
 #: ../src/gooroom-greeter.c:1231
 msgid "Current password: "
 msgstr "Current password: "

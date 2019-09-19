@@ -200,6 +200,16 @@ msgstr ""
 "이 계정은 사용기간 만료로 더이상 사용할 수 없습니다.\n"
 "관리자에게 문의하여 주시기 바랍니다."
 
+#: ../src/gooroom-greeter.c:1213
+#, c-format
+msgid ""
+"The password for your account has expired.\n"
+"Please contact the administrator."
+msgstr ""
+"패스워드가 만료되어 로그인 할 수 없습니다.\n"
+"관리자에게 문의하여 주시기 바랍니다."
+
+
 # 주의, Linux-PAM 의 "Current %s%spassword: "의 번역과 동일
 #: ../src/gooroom-greeter.c:1231
 msgid "Current password: "
