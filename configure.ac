@@ -25,15 +25,8 @@ PKG_CHECK_MODULES([LIGHTDMGOBJECT], [liblightdm-gobject-1 >= 1.19.2],
   [PKG_CHECK_MODULES([LIGHTDMGOBJECT], [liblightdm-gobject-1 >= 1.3.5])]
 )
 PKG_CHECK_MODULES(LIBX11, [x11])
-#PKG_CHECK_MODULES(REST, [rest-0.7])
-PKG_CHECK_MODULES(JSON_GLIB, [json-glib-1.0])
 PKG_CHECK_MODULES(AYATANA_INDICATOR_NG, ayatana-indicator3-0.4 >= 0.6.0
                                         libayatana-ido3-0.4 >= 0.4.0)
-
-AC_CHECK_PROG([HAVE_EXO_CSOURCE], [exo-csource], [yes])
-if test x"$HAVE_EXO_CSOURCE" != xyes; then
-  AC_MSG_FAILURE([exo-csource not installed])
-fi
 
 dnl ***********************
 dnl *** Indicator info ***

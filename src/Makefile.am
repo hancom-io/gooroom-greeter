@@ -44,8 +44,7 @@ gooroom_greeter_CFLAGS = \
 	$(GTHREAD_CFLAGS) \
 	$(LIGHTDMGOBJECT_CFLAGS) \
 	$(LIBX11_CFLAGS) \
-    $(AYATANA_INDICATOR_NG_CFLAGS) \
-	$(JSON_GLIB_CFLAGS)
+    $(AYATANA_INDICATOR_NG_CFLAGS)
 
 gooroom_greeter_LDADD = \
 	$(GTK_LIBS) \
@@ -56,7 +55,6 @@ gooroom_greeter_LDADD = \
 	$(GTHREAD_LIBS) \
 	$(LIGHTDMGOBJECT_LIBS) \
 	$(LIBX11_LIBS) \
-	$(JSON_GLIB_LIBS) \
 	$(AYATANA_INDICATOR_NG_LIBS) \
 	-lm
 
@@ -65,9 +63,6 @@ greeter-resources.c: gresource.xml $(resource_files)
 	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-source --c-name greeter $<
 greeter-resources.h: gresource.xml $(resource_files)
 	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-header --c-name greeter $<
-
-#gooroom-greeter-ui.h: $(srcdir)/gooroom-greeter.glade Makefile
-#	$(AM_V_GEN) exo-csource --static --strip-comments --strip-content --name=gooroom_greeter_ui $< >$@
 
 @INTLTOOL_POLICY_RULE@
 polkitdir = $(datadir)/polkit-1/actions
@@ -79,7 +74,3 @@ CLEANFILES = \
 
 DISTCLEANFILES = \
 	$(BUILT_SOURCES)
-#	$(gooroom_greeter_built_sources)
-
-#BUILT_SOURCES = \
-#	$(gooroom_greeter_built_sources)

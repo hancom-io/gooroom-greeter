@@ -822,8 +822,7 @@ load_module (const gchar *name)
 {
 	gchar                *path;
 	IndicatorObject      *io;
-	GList                *entries, *entry;
-	IndicatorObjectEntry *entrydata;
+	GList                *entries, *l = NULL;
 
 	path = g_build_filename (INDICATOR_DIR, name, NULL);
 	io = indicator_object_new_from_file (path);
@@ -835,11 +834,10 @@ load_module (const gchar *name)
 	g_signal_connect (G_OBJECT (io), INDICATOR_OBJECT_SIGNAL_ENTRY_REMOVED, G_CALLBACK (entry_removed), NULL);
 
 	entries = indicator_object_get_entries (io);
-	entry = NULL;
 
-	for (entry = entries; entry != NULL; entry = g_list_next(entry)) {
-		entrydata = (IndicatorObjectEntry *)entry->data;
-		entry_added (io, entrydata, NULL);
+	for (l = entries; l; l = l->next) {
+		IndicatorObjectEntry *ioe = (IndicatorObjectEntry *)l->data;
+		entry_added (io, ioe, NULL);
 	}
 
 	g_list_free (entries);
@@ -2369,44 +2367,6 @@ wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
     return GDK_FILTER_CONTINUE;
 }
 
-/* Copied from libxfce4ui/xfce-gdk-extensions.c:
- * xfce_gdk_screen_get_active () */
-//static GdkScreen *
-//xfce_gdk_screen_get_active (gint *monitor_return)
-//{
-//    GdkDisplay       *display;
-//    gint              rootx, rooty;
-//    GdkScreen        *screen;
-//
-//G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-//#if GTK_CHECK_VERSION (3, 0, 0)
-//    GdkDeviceManager *manager;
-//
-//    display = gdk_display_get_default ();
-//    manager = gdk_display_get_device_manager (display);
-//    gdk_device_get_position (gdk_device_manager_get_client_pointer (manager), &screen, &rootx, &rooty);
-//#else
-//    display = gdk_display_get_default ();
-//    gdk_display_get_pointer (display, &screen, &rootx, &rooty, NULL);
-//#endif
-//
-//    if (G_UNLIKELY (screen == NULL))
-//    {
-//        screen = gdk_screen_get_default ();
-//        if (monitor_return != NULL)
-//            *monitor_return = 0;
-//    }
-//    else
-//    {
-//        /* return the monitor number */
-//        if (monitor_return != NULL)
-//            *monitor_return = gdk_screen_get_monitor_at_point (screen, rootx, rooty);
-//    }
-//G_GNUC_END_IGNORE_DEPRECATIONS
-//
-//    return screen;
-//}
-
 int
 main (int argc, char **argv)
 {
@@ -2620,13 +2580,6 @@ main (int argc, char **argv)
 	value = config_get_string (NULL, CONFIG_KEY_ACTIVE_MONITOR, NULL);
 	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
 	g_free (value);
-
-//	int monitor = 0;
-//	xfce_gdk_screen_get_active (&monitor);
-//	monitors = gdk_screen_get_n_monitors (screen);
-//	value = g_strdup_printf ("%d", monitor);
-//	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
-//	g_free (value);
 
     read_monitor_configuration (CONFIG_GROUP_DEFAULT, GREETER_BACKGROUND_DEFAULT);
 

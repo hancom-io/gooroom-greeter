@@ -8,12 +8,10 @@ Build-Depends: debhelper (>= 9),
                liblightdm-gobject-dev (>= 1.3.5),
                intltool,
                autotools-dev,
-               exo-utils,
                gnome-common,
                gobject-introspection,
                libglib2.0-dev,
                libupower-glib-dev,
-               libjson-glib-dev,
                libayatana-ido3-dev,
                libayatana-indicator3-dev,
 Standards-Version: 3.9.8
@@ -22,9 +20,6 @@ Homepage: https://git.gooroom.kr/gooroom-greeter
 Package: gooroom-greeter
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, lightdm, gooroom-cloud-login-service
-Description: A LightDM greeter that uses the GTK+ toolkit.
- .
- All panel applets are embedded. No external indicators are launched or
- loaded by the greeter.
- .
- No settings daemon are launched or loaded by the greeter.
+Description: Simple display manager (GTK+ greeter)
+ gooroom-greeter is greeter shell for the LightDM login manager.
+ It uses the GTK+ toolkit and integrates well with Gooroom platform.
