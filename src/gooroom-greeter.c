@@ -2,7 +2,7 @@
  * Origianl work Copyright (C) 2010-2011 Robert Ancell.
  * Author: Robert Ancell <robert.ancell@canonical.com>
  *
- * Modified work Copyright (C) 2017 Gooroom Project Team
+ * Modified work Copyright (C) 2015-2019 Gooroom <gooroom@gooroom.kr>
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -84,6 +84,7 @@ static GtkWidget *user_reg_win_cancel_btn;
 
 /* Login window */
 static GtkWidget    *login_win;
+static GtkWidget    *login_win_title;
 static GtkWidget    *login_win_logo_image, *login_win_login_button_icon;
 static GtkLabel     *login_win_msg_label;
 static GtkWidget    *login_win_username_entry, *login_win_pw_entry;
@@ -156,7 +157,6 @@ static gboolean allow_cloud_login = FALSE;
 
 static UpClient *up_client = NULL;
 static GPtrArray *devices = NULL;
-
 
 enum {
 	LOGIN_GOOROOM,
@@ -1415,23 +1415,22 @@ login_win_login_button_clicked_cb (GtkButton *button, gpointer user_data)
     set_message_label (LIGHTDM_MESSAGE_TYPE_INFO, NULL);
     prompt_active = FALSE;
 
-    if (lightdm_greeter_get_is_authenticated (greeter))
-        start_session ();
-    else if (lightdm_greeter_get_in_authentication (greeter))
-    {
+	if (lightdm_greeter_get_is_authenticated (greeter)) {
+		start_session ();
+	} else if (lightdm_greeter_get_in_authentication (greeter)) {
 #ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
-        lightdm_greeter_respond (greeter, gtk_entry_get_text (GTK_ENTRY (login_win_pw_entry)), NULL);
+		lightdm_greeter_respond (greeter, gtk_entry_get_text (GTK_ENTRY (login_win_pw_entry)), NULL);
 #else
-        lightdm_greeter_respond (greeter, gtk_entry_get_text (GTK_ENTRY (login_win_pw_entry)));
+		lightdm_greeter_respond (greeter, gtk_entry_get_text (GTK_ENTRY (login_win_pw_entry)));
 #endif
-        /* If we have questions pending, then we continue processing
-         * those, until we are done. (Otherwise, authentication will
-         * not complete.) */
-        if (pending_questions)
-            process_prompts (greeter);
-    }
-    else
-        start_authentication (lightdm_greeter_get_authentication_user (greeter));
+		/* If we have questions pending, then we continue processing
+		 * those, until we are done. (Otherwise, authentication will
+		 * not complete.) */
+		if (pending_questions)
+			process_prompts (greeter);
+	} else {
+		start_authentication (lightdm_greeter_get_authentication_user (greeter));
+	}
 }
 
 void
@@ -1716,6 +1715,18 @@ show_message_cb (LightDMGreeter *greeter, const gchar *text, LightDMMessageType 
         pending_questions = g_slist_append (pending_questions, message_obj);
     }
 
+	/* for hsm user */
+	if (g_strcmp0 (text, "PINCodeAuthSuccess") == 0) {
+		gtk_widget_set_sensitive (login_win_username_entry, TRUE);
+		gtk_widget_show (login_win_username_entry);
+		gtk_entry_set_text (GTK_ENTRY (login_win_pw_entry), "");
+		gtk_widget_grab_focus (login_win_username_entry);
+
+		gtk_label_set_markup (GTK_LABEL (login_win_title), _("<span font='18px'><b>Login Gooroom</b></span>"));
+		start_authentication ("*other");
+		return;
+	}
+
     if (!prompt_active)
         process_prompts (greeter);
 }
@@ -1869,6 +1880,26 @@ browser_process_watch_cb (GPid pid, gint status, gpointer user_data)
     gtk_widget_set_sensitive (btn_restart, TRUE);
     gtk_widget_set_sensitive (btn_suspend, TRUE);
     gtk_widget_set_sensitive (btn_hibernate, TRUE);
+}
+
+static gboolean
+start_authentication_as_hsmd (gpointer data)
+{
+	gtk_widget_hide (login_win_username_entry);
+
+	gchar *markup = g_markup_printf_escaped ("<span font=\"18px\"><b>%s</b></span>", _("Enter PIN Code"));
+	gtk_label_set_markup (GTK_LABEL (login_win_title), markup);
+	g_free (markup);
+	// dummy user
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+	lightdm_greeter_authenticate (greeter, "rVeJSnMBnMGgS9pw", NULL);
+#else
+	lightdm_greeter_authenticate (greeter, "rVeJSnMBnMGgS9pw");
+#endif
+
+	gtk_widget_grab_focus (login_win_pw_entry);
+
+	return FALSE;
 }
 
 static void
@@ -2491,6 +2522,7 @@ main (int argc, char **argv)
 
     /* Login Dialog */
 	login_win = GTK_WIDGET (gtk_builder_get_object (builder, "login_win"));
+	login_win_title = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_title"));
 	login_win_logo_image = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_logo_image"));
 	login_win_login_button_icon = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_login_button_icon"));
 	login_win_username_entry = GTK_WIDGET (gtk_builder_get_object (builder, "login_win_username_entry"));
@@ -2618,8 +2650,8 @@ main (int argc, char **argv)
     }
     else
     {
-        gtk_widget_show (login_win_username_entry);
-        start_authentication ("*other");
+		gtk_widget_show (login_win_username_entry);
+		start_authentication ("*other");
     }
 
 	setup_cloud_win (builder);
@@ -2674,6 +2706,10 @@ main (int argc, char **argv)
 
         go_to_login_step2 (GTK_BUTTON (btn_cloud_win_step1_next), NULL);
     }
+
+	value = config_get_string (NULL, CONFIG_KEY_USE_HSM, NULL);
+	if (value && g_str_equal (value, "true"))
+		g_idle_add ((GSourceFunc)start_authentication_as_hsmd, NULL);
 
     g_debug ("Run Gtk loop...");
     gtk_main ();
