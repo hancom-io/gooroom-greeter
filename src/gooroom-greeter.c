@@ -961,7 +961,7 @@ set_message_label (LightDMMessageType type, const gchar *text)
         gtk_info_bar_set_message_type (login_win_infobar, GTK_MESSAGE_ERROR);
 
     const gchar *str = (text != NULL) ? text : "";
-    gtk_label_set_text (login_win_msg_label, str);
+    gtk_label_set_markup (login_win_msg_label, str);
 }
 
 static void
@@ -1080,48 +1080,52 @@ pam_message_finalize (PAMConversationMessage *message)
 static void
 process_prompts (LightDMGreeter *greeter)
 {
-    if (!pending_questions)
-        return;
+	if (!pending_questions)
+		return;
 
-    /* always allow the user to change username again */
-    gtk_widget_set_sensitive (login_win_username_entry, TRUE);
-    gtk_widget_set_sensitive (login_win_pw_entry, TRUE);
+	/* always allow the user to change username again */
+	gtk_widget_set_sensitive (login_win_username_entry, TRUE);
+	gtk_widget_set_sensitive (login_win_pw_entry, TRUE);
 
-    if (changing_password) {
-        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_prompt_entry), TRUE);
-        gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_ok_button), TRUE);
-    }
+	if (changing_password) {
+		gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_prompt_entry), TRUE);
+		gtk_widget_set_sensitive (GTK_WIDGET (pw_set_win_ok_button), TRUE);
+	}
 
-    /* Special case: no user selected from list, so PAM asks us for the user
-     * via a prompt. For that case, use the username field */
-    if (!prompted && pending_questions && !pending_questions->next &&
+	/* Special case: no user selected from list, so PAM asks us for the user
+	 * via a prompt. For that case, use the username field */
+	if (!prompted && pending_questions && !pending_questions->next &&
         ((PAMConversationMessage *) pending_questions->data)->is_prompt &&
         ((PAMConversationMessage *) pending_questions->data)->type.prompt != LIGHTDM_PROMPT_TYPE_SECRET &&
-        gtk_widget_get_visible (login_win_username_entry) &&
-        lightdm_greeter_get_authentication_user (greeter) == NULL)
-    {
-        prompted = TRUE;
-        prompt_active = TRUE;
-        gtk_widget_grab_focus (login_win_username_entry);
-        gtk_widget_show (login_win_pw_entry);
-        return;
-    }
+			gtk_widget_get_visible (login_win_username_entry) &&
+			lightdm_greeter_get_authentication_user (greeter) == NULL)
+	{
+		prompted = TRUE;
+		prompt_active = TRUE;
+		gtk_widget_grab_focus (login_win_username_entry);
+		gtk_widget_show (login_win_pw_entry);
+		return;
+	}
 
-    while (pending_questions)
-    {
-        PAMConversationMessage *message = (PAMConversationMessage *) pending_questions->data;
-        pending_questions = g_slist_remove (pending_questions, (gconstpointer) message);
+	while (pending_questions)
+	{
+		PAMConversationMessage *message = (PAMConversationMessage *) pending_questions->data;
+		pending_questions = g_slist_remove (pending_questions, (gconstpointer) message);
 
-        const gchar *filter_msg_01 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
-        const gchar *filter_msg_02 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
-        const gchar *filter_msg_03 = "Temporary Password";
-        const gchar *filter_msg_04 = "Password Expiration Warning";
-        const gchar *filter_msg_05 = "Account Expiration Warning";
-        const gchar *filter_msg_06 = "Duplicate Login Notification";
-        const gchar *filter_msg_07 = "Authentication Failure";
-        const gchar *filter_msg_08 = "Account Locking";
-        const gchar *filter_msg_09 = "Account Expiration";
-        const gchar *filter_msg_10 = "Password Expiration";
+		const gchar *filter_msg_01 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
+		const gchar *filter_msg_02 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
+		const gchar *filter_msg_030 = "Temporary Password";
+		const gchar *filter_msg_040 = "Password Expiration Warning";
+		const gchar *filter_msg_050 = "Account Expiration Warning";
+		const gchar *filter_msg_051 = "Division Expiration Warning";
+		const gchar *filter_msg_060 = "Duplicate Login Notification";
+		const gchar *filter_msg_070 = "Authentication Failure";
+		const gchar *filter_msg_080 = "Account Locking";
+		const gchar *filter_msg_090 = "Account Expiration";
+		const gchar *filter_msg_100 = "Password Expiration";
+		const gchar *filter_msg_110 = "Duplicate Login";
+		const gchar *filter_msg_120 = "Division Expiration";
+		const gchar *filter_msg_130 = "Login Trial Exceed";
 
 		if ((strstr (message->text, filter_msg_01) != NULL) ||
             (strstr (message->text, filter_msg_02) != NULL)) {
@@ -1130,13 +1134,13 @@ process_prompts (LightDMGreeter *greeter)
 					_("Your password has expired.\nPlease change your password immediately."),
 					_("Changing Password"), _("Cancel"), "password_expiration");
 			continue;
-        } else if (g_str_has_prefix (message->text, filter_msg_03)) {
-            changing_password = TRUE;
-            show_ask_window (_("Temporary Password Warning"),
-                _("Your password has been issued temporarily.\nFor security reasons, please change your password immediately."),
-                _("Changing Password"), _("Cancel"), "password_expiration");
-            continue;
-        } else if (g_str_has_prefix (message->text, filter_msg_04)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_030)) {
+			changing_password = TRUE;
+			show_ask_window (_("Temporary Password Warning"),
+					_("Your password has been issued temporarily.\nFor security reasons, please change your password immediately."),
+					_("Changing Password"), _("Cancel"), "password_expiration");
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg_040)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
@@ -1150,41 +1154,83 @@ process_prompts (LightDMGreeter *greeter)
 			}
 			g_strfreev (tokens);
 
-            show_ask_window (_("Password Expiration Warning"), msg,
-                             _("Changing Password"), _("Cancel"), "ask_chpasswd");
-            g_free (msg);
+			show_ask_window (_("Password Expiration Warning"), msg,
+					_("Changing Password"), _("Cancel"), "ask_chpasswd");
+			g_free (msg);
 
-            continue;
-        } else if (g_str_has_prefix (message->text, filter_msg_05)) {
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg_050)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 2) {
 				if (g_str_equal (tokens[1], "1")) {
 					msg = g_strdup_printf (_("Your account will not be available after %s.\n"
-                                             "Your account will expire in %s day"),
-                                             tokens[1], tokens[2]);
+								"Your account will expire in %s day"),
+							tokens[1], tokens[2]);
 				} else {
 					msg = g_strdup_printf (_("Your account will not be available after %s.\n"
-                                             "Your account will expire in %s days"),
-                                             tokens[1], tokens[2]);
+								"Your account will expire in %s days"),
+							tokens[1], tokens[2]);
 				}
 			}
 			g_strfreev (tokens);
 
-            show_msg_window (_("Account Expiration Warning"),
-                             msg, _("Ok"), "ACCT_EXP_OK");
-            g_free (msg);
-
-            continue;
-		} else if (g_str_has_prefix (message->text, filter_msg_06)) {
-			gchar *msg = g_strdup (_("Duplicate logins detected with the same ID."));
-
-			show_msg_window (_("Duplicate Login Notification"),
-					msg, _("Ok"), "DUPLICATE_LOGIN_OK");
+			show_msg_window (_("Account Expiration Warning"),
+					msg, _("Ok"), "ACCT_EXP_OK");
 			g_free (msg);
 
 			continue;
-		} else if (g_str_has_prefix (message->text, filter_msg_07)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_051)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 2) {
+				if (g_str_equal (tokens[1], "1")) {
+					msg = g_strdup_printf (_("Your organization will not be available after %s.\n"
+								"Your organization will expire in %s day"),
+							tokens[1], tokens[2]);
+				} else {
+					msg = g_strdup_printf (_("Your orgranization will not be available after %s.\n"
+								"Your orgranization will expire in %s days"),
+							tokens[1], tokens[2]);
+				}
+			}
+			g_strfreev (tokens);
+
+			show_msg_window (_("Division Expiration Warning"),
+					msg, _("Ok"), "DEPT_EXP_OK");
+			g_free (msg);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg_060)) {
+			GString *msg = g_string_new (_("Duplicate logins detected with the same ID."));
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (tokens[1]) {
+				gchar *markup = g_markup_printf_escaped ("<i>%s : %s</i>", _("Client ID"), tokens[1]);
+				g_string_append_printf (msg, "\n\n%s", markup);
+				g_free (markup);
+			}
+			if (tokens[2]) {
+				gchar *markup = g_markup_printf_escaped ("<i>%s : %s</i>", _("Client Name"), tokens[2]);
+				g_string_append_printf (msg, "\n%s", markup);
+				g_free (markup);
+			}
+			if (tokens[3]) {
+				gchar *markup = g_markup_printf_escaped ("<i>%s : %s</i>", _("IP"), tokens[3]);
+				g_string_append_printf (msg, "\n%s", markup);
+				g_free (markup);
+			}
+			if (tokens[4]) {
+				gchar *markup = g_markup_printf_escaped ("<i>%s : %s</i>", _("Local IP"), tokens[4]);
+				g_string_append_printf (msg, "\n%s", markup);
+				g_free (markup);
+			}
+
+			show_msg_window (_("Duplicate Login Notification"),
+					msg->str, _("Ok"), "DUPLICATE_LOGIN_OK");
+			g_string_free (msg, TRUE);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg_070)) {
 			gchar *msg = NULL;
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
@@ -1195,21 +1241,36 @@ process_prompts (LightDMGreeter *greeter)
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
-		} else if (g_str_has_prefix (message->text, filter_msg_08)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_080)) {
 			gchar *msg = g_strdup_printf (_("Your account has been locked because you have exceeded the number of login attempts.\n"
-						"Please contact the administrator."));
+						"Please try again in a moment."));
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
-		} else if (g_str_has_prefix (message->text, filter_msg_09)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_090)) {
 			gchar *msg = g_strdup_printf (_("This account has expired and is no longer available.\n"
 						"Please contact the administrator."));
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
-		} else if (g_str_has_prefix (message->text, filter_msg_10)) {
+		} else if (g_str_has_prefix (message->text, filter_msg_100)) {
 			gchar *msg = g_strdup_printf (_("The password for your account has expired.\n"
 						"Please contact the administrator."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_110)) {
+			gchar *msg = g_strdup_printf (_("Login Failure (Duplicate Login)"));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_120)) {
+			gchar *msg = g_strdup_printf (_("Due to the expiration of your organization, this account is no longer available.\nPlease contact the administrator."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_130)) {
+			gchar *msg = g_strdup_printf (_("Login attempts exceeded the number of times, so you cannot login for a certain period of time.\nPlease try again in a moment."));
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
@@ -1217,16 +1278,15 @@ process_prompts (LightDMGreeter *greeter)
 
         if (!message->is_prompt)
         {
-            /* FIXME: this doesn't show multiple messages, but that was
-             * already the case before. */
-            if (changing_password) {
-                gtk_label_set_text (pw_set_win_msg_label, message->text);
-            } else {
-                set_message_label (message->type.message, message->text);
-            }
-            continue;
+			/* FIXME: this doesn't show multiple messages, but that was
+			 * already the case before. */
+			if (changing_password) {
+				gtk_label_set_text (pw_set_win_msg_label, message->text);
+			} else {
+				set_message_label (message->type.message, message->text);
+			}
+			continue;
         }
-
 
         if (changing_password) {
 			const gchar *title;
@@ -1662,6 +1722,15 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 			lightdm_greeter_respond (greeter, "acct_exp_ok", NULL);
 #else
 			lightdm_greeter_respond (greeter, "acct_exp_ok");
+#endif
+		}
+    } else if (g_str_equal (data, "DEPT_EXP_OK")) {
+		if (lightdm_greeter_get_in_authentication (greeter)) {
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+			lightdm_greeter_respond (greeter, "dept_exp_ok", NULL);
+#else
+			lightdm_greeter_respond (greeter, "dept_exp_ok");
 #endif
 		}
     } else if (g_str_equal (data, "DUPLICATE_LOGIN_OK")) {
