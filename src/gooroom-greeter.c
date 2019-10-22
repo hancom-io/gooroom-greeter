@@ -1,8 +1,12 @@
 /*
- * Origianl work Copyright (C) 2010-2011 Robert Ancell.
- * Author: Robert Ancell <robert.ancell@canonical.com>
- *
- * Modified work Copyright (C) 2015-2019 Gooroom <gooroom@gooroom.kr>
+ * Copyright (C) 2010 - 2011, Robert Ancell <robert.ancell@canonical.com>
+ * Copyright (C) 2011, Gunnar Hjalmarsson <ubuntu@gunnar.cc>
+ * Copyright (C) 2012 - 2013, Lionel Le Folgoc <mrpouit@ubuntu.com>
+ * Copyright (C) 2012, Julien Lavergne <gilir@ubuntu.com>
+ * Copyright (C) 2013 - 2015, Simon Steinbeiß <ochosi@shimmerproject.org>
+ * Copyright (C) 2013 - 2018, Sean Davis <smd.seandavis@gmail.com>
+ * Copyright (C) 2014, Andrew P. <pan.pav.7c5@gmail.com>
+ * Copyright (C) 2015 - 2019 Gooroom <gooroom@gooroom.kr>
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -10,6 +14,7 @@
  * version. See http://www.gnu.org/copyleft/gpl.html the full text of the
  * license.
  */
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -541,7 +546,7 @@ static void
 show_msg_window (const gchar *title, const gchar *msg, const gchar *ok, const gchar *data)
 {
     gtk_label_set_label (msg_win_title_label, (title != NULL) ? title : "");
-    gtk_label_set_label (msg_win_msg_label, (msg != NULL) ? msg : "");
+    gtk_label_set_markup (msg_win_msg_label, (msg != NULL) ? msg : "");
     gtk_button_set_label (msg_win_ok_button, (ok != NULL) ? ok : "");
 
     g_object_set_data (G_OBJECT (msg_win), MSG_WIN_DATA, (gpointer)data);
@@ -1115,7 +1120,8 @@ process_prompts (LightDMGreeter *greeter)
 		const gchar *filter_msg_01 = g_dgettext("Linux-PAM", "You are required to change your password immediately (administrator enforced)");
 		const gchar *filter_msg_02 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
 		const gchar *filter_msg_030 = "Temporary Password";
-		const gchar *filter_msg_040 = "Password Expiration Warning";
+		const gchar *filter_msg_040 = "Password Maxday Warning";
+		const gchar *filter_msg_041 = "Password Expiration Warning";
 		const gchar *filter_msg_050 = "Account Expiration Warning";
 		const gchar *filter_msg_051 = "Division Expiration Warning";
 		const gchar *filter_msg_060 = "Duplicate Login Notification";
@@ -1145,17 +1151,26 @@ process_prompts (LightDMGreeter *greeter)
 			gchar **tokens = g_strsplit (message->text, ":", -1);
 			if (g_strv_length (tokens) > 1) {
 				if (g_str_equal (tokens[1], "1")) {
-					msg = g_strdup_printf (_("Your password will expire in %s day\nDo you want to change password now?"), tokens[1]);
+					msg = g_strdup_printf (_("Please change your password for security.\n"
+                                           "If you do not change your password within %s day, "
+                                           "your password expires.You can no longer log in.\n"
+                                           "Do you want to change password now?"), tokens[1]);
 				} else {
-					msg = g_strdup_printf (_("Your password will expire in %s days\nDo you want to change password now?"), tokens[1]);
+					msg = g_strdup_printf (_("Please change your password for security.\n"
+                                           "If you do not change your password within %s days, "
+                                           "your password expires.You can no longer log in.\n"
+                                           "Do you want to change password now?"), tokens[1]);
 				}
 			} else {
-				msg = g_strdup (_("Your password will expire soon\nDo you want to change password now?"));
+				msg = g_strdup (_("Please change your password for security.\n"
+                                "If you do not change your password within a few days, "
+                                "your password expires.You can no longer log in.\n"
+                                "Do you want to change password now?"));
 			}
 			g_strfreev (tokens);
 
-			show_ask_window (_("Password Expiration Warning"), msg,
-					_("Changing Password"), _("Cancel"), "ask_chpasswd");
+			show_ask_window (_("Password Maxday Warning"), msg,
+					_("Change now"), _("Later"), "ask_chpasswd");
 			g_free (msg);
 
 			continue;

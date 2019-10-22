@@ -18,6 +18,7 @@
           <object class="GtkImage" id="ask_icon_image">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="valign">start</property>
             <property name="pixel_size">48</property>
             <property name="icon_name">dialog-question-symbolic</property>
             <property name="icon_size">6</property>
@@ -493,9 +494,6 @@
             <property name="position">1</property>
           </packing>
         </child>
-        <child>
-          <placeholder/>
-        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -520,6 +518,7 @@
           <object class="GtkImage" id="power_icon_image">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="valign">start</property>
             <property name="pixel_size">48</property>
             <property name="icon_name">gooroom-greeter-shutdown-symbolic</property>
             <property name="icon_size">6</property>
@@ -851,6 +850,7 @@
           <object class="GtkImage">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="valign">start</property>
             <property name="pixel_size">48</property>
             <property name="icon_name">dialog-information-symbolic</property>
             <property name="icon_size">6</property>

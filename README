@@ -1,6 +1,6 @@
 Gooroom Greeter
 ============================
 
-Simple display manager (GTK+ greeter)
+Simple display manager
 gooroom-greeter is greeter shell for the LightDM login manager.
 It uses the GTK+ toolkit and integrates well with Gooroom platform.
