@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.4"/>
   <object class="GtkEventBox" id="ask_win">
@@ -43,7 +43,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">[message]</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -56,7 +55,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label">[title]</property>
                     <attributes>
                       <attribute name="weight" value="semibold"/>
                       <attribute name="size" value="12000"/>
@@ -171,7 +169,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">[text]</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -184,7 +181,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label">[title]</property>
                     <attributes>
                       <attribute name="weight" value="semibold"/>
                       <attribute name="size" value="12000"/>
@@ -311,7 +307,6 @@
                                     <property name="can_focus">False</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
-                                    <property name="label" translatable="yes">Unknown</property>
                                     <property name="ellipsize">end</property>
                                     <property name="max_width_chars">32</property>
                                     <attributes>
@@ -547,7 +542,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label" translatable="yes">[message]</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -560,7 +554,6 @@
                     <property name="can_focus">False</property>
                     <property name="halign">start</property>
                     <property name="hexpand">True</property>
-                    <property name="label">[title]</property>
                     <attributes>
                       <attribute name="weight" value="semibold"/>
                       <attribute name="size" value="12000"/>
@@ -865,7 +858,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
-                <property name="label" translatable="yes">[title]</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                   <attribute name="foreground" value="#000000000000"/>
@@ -895,7 +887,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="halign">start</property>
-                        <property name="label" translatable="yes">[prompt message]</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>

@@ -1,6 +1,6 @@
 /*  
- *  Copyright (C) 2015-2017 Gooroom <gooroom@gooroom.kr>
  *  Copyright (c) 2012-2013 Andrzej <ndrwrdck@gmail.com>
+ *  Copyright (C) 2015-2019 Gooroom <gooroom@gooroom.kr>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

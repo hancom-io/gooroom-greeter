@@ -1,4 +1,4 @@
-AC_INIT(gooroom-greeter, 0.1.0)
+AC_INIT(gooroom-greeter, 0.2.1)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR(m4)
 AM_INIT_AUTOMAKE([no-dist-gzip dist-xz foreign])
