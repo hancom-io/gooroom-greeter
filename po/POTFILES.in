@@ -1,3 +1,2 @@
 src/gooroom-greeter.c
 [type: gettext/glade]src/gooroom-greeter.ui
-[type: gettext/ini]src/kr.gooroom.greeter.policy.in

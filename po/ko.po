@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-22 16:48+0900\n"
+"POT-Creation-Date: 2019-10-25 11:47+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -17,63 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gooroom-greeter.c:611
+#: ../src/gooroom-greeter.c:530
 #, c-format
 msgid "Warning: There is still %d user logged in."
 msgid_plural "Warning: There are still %d users logged in."
 msgstr[0] "경고: %d명의 사용자가 로그인 되어 있습니다."
 msgstr[1] "경고: %d명의 사용자가 로그인 되어 있습니다."
 
-#: ../src/gooroom-greeter.c:666
+#: ../src/gooroom-greeter.c:565
 msgid "System Shutdown"
 msgstr "시스템 종료"
 
-#: ../src/gooroom-greeter.c:667
+#: ../src/gooroom-greeter.c:566
 msgid "Are you sure you want to close all programs and shut down the computer?"
 msgstr "모든 프로그램을 닫고 컴퓨터를 종료 하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:672
+#: ../src/gooroom-greeter.c:571
 msgid "System Restart"
 msgstr "시스템 재시작"
 
-#: ../src/gooroom-greeter.c:673
+#: ../src/gooroom-greeter.c:572
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr "모든 프로그램을 닫고 컴퓨터를 다시 시작하겠습니까?"
 
-#: ../src/gooroom-greeter.c:678
+#: ../src/gooroom-greeter.c:577
 msgid "System Suspend"
 msgstr "시스템 절전"
 
-#: ../src/gooroom-greeter.c:679
+#: ../src/gooroom-greeter.c:578
 msgid "Are you sure you want to suspend the computer?"
 msgstr "컴퓨터를 절전 모드로 전환하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:684
+#: ../src/gooroom-greeter.c:583
 msgid "System Hibernate"
 msgstr "시스템 최대절전"
 
-#: ../src/gooroom-greeter.c:685
+#: ../src/gooroom-greeter.c:584
 msgid "Are you sure you want to hibernate the computer?"
 msgstr "컴퓨터를 최대 절전 모드로 전환하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:1120
+#: ../src/gooroom-greeter.c:1027
 msgid ""
 "You are required to change your password immediately (administrator enforced)"
 msgstr ""
 "패스워드가 만료되었습니다.\n"
 "패스워드를 즉시 변경해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1121
+#: ../src/gooroom-greeter.c:1028
 msgid "You are required to change your password immediately (password expired)"
 msgstr ""
 "패스워드가 만료되었습니다.\n"
 "패스워드를 즉시 변경해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1139
+#: ../src/gooroom-greeter.c:1046
 msgid "Password Expiration"
 msgstr "패스워드 만료"
 
-#: ../src/gooroom-greeter.c:1140
+#: ../src/gooroom-greeter.c:1047
 msgid ""
 "Your password has expired.\n"
 "Please change your password immediately."
@@ -81,19 +81,19 @@ msgstr ""
 "패스워드가 만료되었습니다.\n"
 "패스워드를 즉시 변경해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1141 ../src/gooroom-greeter.c:1147
+#: ../src/gooroom-greeter.c:1048 ../src/gooroom-greeter.c:1054
 msgid "Changing Password"
 msgstr "패스워드 변경"
 
-#: ../src/gooroom-greeter.c:1141 ../src/gooroom-greeter.c:1147
+#: ../src/gooroom-greeter.c:1048 ../src/gooroom-greeter.c:1054
 msgid "Cancel"
 msgstr "취소"
 
-#: ../src/gooroom-greeter.c:1145
+#: ../src/gooroom-greeter.c:1052
 msgid "Temporary Password Warning"
 msgstr "임시 패스워드 경고"
 
-#: ../src/gooroom-greeter.c:1146
+#: ../src/gooroom-greeter.c:1053
 msgid ""
 "Your password has been issued temporarily.\n"
 "For security reasons, please change your password immediately."
@@ -101,7 +101,7 @@ msgstr ""
 "임시로 발급된 패스워드 입니다.\n"
 "보안을 위해서 패스워드를 즉시 변경해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1154
+#: ../src/gooroom-greeter.c:1061
 #, c-format
 msgid ""
 "Please change your password for security.\n"
@@ -114,7 +114,7 @@ msgstr ""
 "수 없습니다.\n"
 "지금 패스워드를 변경하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:1159
+#: ../src/gooroom-greeter.c:1066
 #, c-format
 msgid ""
 "Please change your password for security.\n"
@@ -127,7 +127,7 @@ msgstr ""
 "수 없습니다.\n"
 "지금 패스워드를 변경하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:1165
+#: ../src/gooroom-greeter.c:1072
 msgid ""
 "Please change your password for security.\n"
 "If you do not change your password within a few days, your password expires."
@@ -139,19 +139,19 @@ msgstr ""
 "수 없습니다.\n"
 "지금 패스워드를 변경하시겠습니까?"
 
-#: ../src/gooroom-greeter.c:1172
+#: ../src/gooroom-greeter.c:1079
 msgid "Password Maxday Warning"
 msgstr "패스워드 변경 안내"
 
-#: ../src/gooroom-greeter.c:1173
+#: ../src/gooroom-greeter.c:1080
 msgid "Change now"
 msgstr "지금 변경"
 
-#: ../src/gooroom-greeter.c:1173
+#: ../src/gooroom-greeter.c:1080
 msgid "Later"
 msgstr "나중에"
 
-#: ../src/gooroom-greeter.c:1182
+#: ../src/gooroom-greeter.c:1089
 #, c-format
 msgid ""
 "Your account will not be available after %s.\n"
@@ -160,7 +160,7 @@ msgstr ""
 "이 계정은 %s일 이후로 사용할 수 없습니다.\n"
 "계정 만료까지 %s일 남았습니다."
 
-#: ../src/gooroom-greeter.c:1186
+#: ../src/gooroom-greeter.c:1093
 #, c-format
 msgid ""
 "Your account will not be available after %s.\n"
@@ -169,17 +169,17 @@ msgstr ""
 "이 계정은 %s일 이후로 사용할 수 없습니다.\n"
 "계정 만료까지 %s일 남았습니다."
 
-#: ../src/gooroom-greeter.c:1193
+#: ../src/gooroom-greeter.c:1100
 msgid "Account Expiration Warning"
 msgstr "계정 만료 경고"
 
-#: ../src/gooroom-greeter.c:1194 ../src/gooroom-greeter.c:1215
-#: ../src/gooroom-greeter.c:1244 ../src/gooroom-greeter.c:1902
+#: ../src/gooroom-greeter.c:1101 ../src/gooroom-greeter.c:1122
+#: ../src/gooroom-greeter.c:1151 ../src/gooroom-greeter.c:1786
 #: ../src/gooroom-greeter.ui.h:1
 msgid "Ok"
 msgstr "확인"
 
-#: ../src/gooroom-greeter.c:1203
+#: ../src/gooroom-greeter.c:1110
 #, c-format
 msgid ""
 "Your organization will not be available after %s.\n"
@@ -188,7 +188,7 @@ msgstr ""
 "이 계정이 속한 조직은 %s일 이후로 사용할 수 없습니다.\n"
 "조직 만료까지 %s일 남았습니다."
 
-#: ../src/gooroom-greeter.c:1207
+#: ../src/gooroom-greeter.c:1114
 #, c-format
 msgid ""
 "Your orgranization will not be available after %s.\n"
@@ -197,35 +197,35 @@ msgstr ""
 "이 계정이 속한 조직은 %s일 이후로 사용할 수 없습니다.\n"
 "조직 만료까지 %s일 남았습니다."
 
-#: ../src/gooroom-greeter.c:1214
+#: ../src/gooroom-greeter.c:1121
 msgid "Division Expiration Warning"
 msgstr "조직 만료 경고"
 
-#: ../src/gooroom-greeter.c:1220
+#: ../src/gooroom-greeter.c:1127
 msgid "Duplicate logins detected with the same ID."
 msgstr "동일 아이디로 중복로그인이 감지되었습니다."
 
-#: ../src/gooroom-greeter.c:1223
+#: ../src/gooroom-greeter.c:1130
 msgid "Client ID"
 msgstr "클라이언트 ID"
 
-#: ../src/gooroom-greeter.c:1228
+#: ../src/gooroom-greeter.c:1135
 msgid "Client Name"
 msgstr "클라이언트 이름"
 
-#: ../src/gooroom-greeter.c:1233
+#: ../src/gooroom-greeter.c:1140
 msgid "IP"
 msgstr "IP"
 
-#: ../src/gooroom-greeter.c:1238
+#: ../src/gooroom-greeter.c:1145
 msgid "Local IP"
 msgstr "로컬 IP"
 
-#: ../src/gooroom-greeter.c:1243
+#: ../src/gooroom-greeter.c:1150
 msgid "Duplicate Login Notification"
 msgstr "중복로그인 알림"
 
-#: ../src/gooroom-greeter.c:1252
+#: ../src/gooroom-greeter.c:1159
 #, c-format
 msgid ""
 "Authentication Failure\n"
@@ -239,7 +239,7 @@ msgstr ""
 "로그인 시도 가능 횟수가 %s회 남았습니다.\n"
 "로그인 시도 최대 가능 횟수 초과시 더이상 로그인 할 수 없습니다."
 
-#: ../src/gooroom-greeter.c:1260
+#: ../src/gooroom-greeter.c:1167
 #, c-format
 msgid ""
 "Your account has been locked because you have exceeded the number of login "
@@ -249,7 +249,7 @@ msgstr ""
 "로그인 시도 횟수를 초과하여 계정이 잠겼습니다.\n"
 "잠시 후 다시 시도해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1266
+#: ../src/gooroom-greeter.c:1173
 #, c-format
 msgid ""
 "This account has expired and is no longer available.\n"
@@ -258,7 +258,7 @@ msgstr ""
 "이 계정은 사용기간 만료로 더이상 사용할 수 없습니다.\n"
 "관리자에게 문의하여 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1272
+#: ../src/gooroom-greeter.c:1179
 #, c-format
 msgid ""
 "The password for your account has expired.\n"
@@ -267,12 +267,12 @@ msgstr ""
 "패스워드가 만료되어 로그인 할 수 없습니다.\n"
 "관리자에게 문의하여 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1278
+#: ../src/gooroom-greeter.c:1185
 #, c-format
 msgid "Login Failure (Duplicate Login)"
 msgstr "로그인 실패 (중복 로그인)"
 
-#: ../src/gooroom-greeter.c:1283
+#: ../src/gooroom-greeter.c:1190
 #, c-format
 msgid ""
 "Due to the expiration of your organization, this account is no longer "
@@ -282,7 +282,7 @@ msgstr ""
 "조직의 사용기간 만료로 이 계정은 더이상 사용할 수 없습니다.\n"
 "관리자에게 문의하여 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1288
+#: ../src/gooroom-greeter.c:1195
 #, c-format
 msgid ""
 "Login attempts exceeded the number of times, so you cannot login for a "
@@ -293,65 +293,61 @@ msgstr ""
 "잠시 후 다시 시도해 주시기 바랍니다."
 
 # 주의, Linux-PAM 의 "Current %s%spassword: "의 번역과 동일
-#: ../src/gooroom-greeter.c:1312
+#: ../src/gooroom-greeter.c:1219
 msgid "Current password: "
 msgstr "현재  암호:"
 
-#: ../src/gooroom-greeter.c:1313
+#: ../src/gooroom-greeter.c:1220
 msgid "Changing Password - [Step 1]"
 msgstr "패스워드 변경 [1단계]"
 
-#: ../src/gooroom-greeter.c:1314
+#: ../src/gooroom-greeter.c:1221
 msgid "Enter current password :"
 msgstr "현재 암호 입력 :"
 
 # 주의, Linux-PAM / libpwquality의 "New %s%spassword: " 의 번역과 동일
-#: ../src/gooroom-greeter.c:1316
+#: ../src/gooroom-greeter.c:1223
 msgid "New password: "
 msgstr "새  암호:"
 
-#: ../src/gooroom-greeter.c:1317
+#: ../src/gooroom-greeter.c:1224
 msgid "Changing Password - [Step 2]"
 msgstr "패스워드 변경 [2단계]"
 
-#: ../src/gooroom-greeter.c:1318
+#: ../src/gooroom-greeter.c:1225
 msgid "Enter new password :"
 msgstr "새 암호 입력 :"
 
 # 주의, Linux-PAM / libpwquality의 "Retype new %s%spassword: " 의 번역과 동일
-#: ../src/gooroom-greeter.c:1320
+#: ../src/gooroom-greeter.c:1227
 msgid "Retype new password: "
 msgstr "새  암호 재입력:"
 
-#: ../src/gooroom-greeter.c:1321
+#: ../src/gooroom-greeter.c:1228
 msgid "Changing Password - [Step 3]"
 msgstr "패스워드 변경 [3단계]"
 
-#: ../src/gooroom-greeter.c:1322
+#: ../src/gooroom-greeter.c:1229
 msgid "Retype new password :"
 msgstr "새 암호 재입력 :"
 
-#: ../src/gooroom-greeter.c:1449
+#: ../src/gooroom-greeter.c:1356
 msgid "Failed to start session"
 msgstr "세션을 시작할 수 없습니다."
 
-#: ../src/gooroom-greeter.c:1809 ../src/gooroom-greeter.ui.h:7
-msgid "<span font='18px'><b>Login Gooroom</b></span>"
-msgstr "<span font='18px'><b>구름에 로그인하세요</b></span>"
-
-#: ../src/gooroom-greeter.c:1889
+#: ../src/gooroom-greeter.c:1773
 msgid "Login Failure (Authentication Failure)"
 msgstr "로그인 실패 (사용자 인증 오류)"
 
-#: ../src/gooroom-greeter.c:1896
+#: ../src/gooroom-greeter.c:1780
 msgid "Failed to authenticate"
 msgstr "인증에 실패하였습니다."
 
-#: ../src/gooroom-greeter.c:1900
+#: ../src/gooroom-greeter.c:1784
 msgid "Failure Of Changing Password"
 msgstr "패스워드 변경 실패"
 
-#: ../src/gooroom-greeter.c:1901
+#: ../src/gooroom-greeter.c:1785
 msgid ""
 "Failed to change password.\n"
 "Please try again."
@@ -359,123 +355,46 @@ msgstr ""
 "패스워드 변경에 실패하였습니다.\n"
 "다시 시도해 주시기 바랍니다."
 
-#: ../src/gooroom-greeter.c:1974
-msgid "Enter PIN Code"
-msgstr ""
-
-#: ../src/gooroom-greeter.c:2303
-msgid "A user name must start with a letter."
-msgstr "계정 이름은 반드시 문자로 시작해야 합니다."
-
-#: ../src/gooroom-greeter.c:2308
-msgid "A user name cannot start with a “-”."
-msgstr "계정 이름은 \"-\"로 시작할 수 없습니다."
-
-#: ../src/gooroom-greeter.c:2326
-msgid ""
-"A user name should only consist of upper and lower case letters from a-z, "
-"digits and the following characters: \".\", \"-\", \"_\", \"@\""
-msgstr ""
-"계정 이름은 a-z의 대문자와 소문자, 숫자 및 \".\", \"-\", \"_\", \"@\"문자로"
-"만 구성되어야합니다."
-
-#: ../src/gooroom-greeter.c:2331
-#, c-format
-msgid "A user name is too long."
-msgstr "계정 이름이 너무 깁니다."
-
-#: ../src/gooroom-greeter.c:2336
-msgid ""
-"A user with this name already exists.\n"
-"Please choose a different name for the new user."
-msgstr "이미 존재하는 계정입니다."
-
-#: ../src/gooroom-greeter.c:2397
-msgid "Creating user..."
-msgstr "계정 생성 중..."
-
 #: ../src/gooroom-greeter.ui.h:2
-msgid "<span size=\"xx-large\"><b>Step 1 - Select Service</b></span>"
-msgstr "<span size=\"xx-large\"><b>1 단계 - 서비스 선택</b></span>"
+msgid "<span font='18px'><b>Login Gooroom</b></span>"
+msgstr "<span font='18px'><b>구름에 로그인하세요</b></span>"
 
 #: ../src/gooroom-greeter.ui.h:3
-msgid ""
-"<span size=\"medium\"><i><b>Select a service that will work with the GOOROOM "
-"for the first time.</b></i></span>"
-msgstr ""
-"<span size=\"medium\"><i><b>로그인 할 서비스를 선택하고 '다음' 버튼을 눌러 주"
-"십시오.</b></i></span>"
-
-#: ../src/gooroom-greeter.ui.h:4
-msgid "<span size=\"xx-large\"><b>Step 2 - Select Account</b></span>"
-msgstr "<span size=\"xx-large\"><b>2 단계 - 계정 선택</b></span>"
-
-#: ../src/gooroom-greeter.ui.h:5
-msgid ""
-"<span size=\"medium\"><i><b>Please select a Account to login from the list "
-"below. If not, please click the register button to register your Account.</"
-"b></i></span>"
-msgstr ""
-"<span size=\"medium\"><i><b>아래 목록에서 로그인 계정을 선택하고 '다음' 버튼"
-"을 눌러 주십시오.만약 계정이 존재하지 않다면 '계정 등록' 버튼을 눌러 계정을 "
-"먼저 등록하시기 바랍니다.</b></i></span>"
-
-#: ../src/gooroom-greeter.ui.h:6
-msgid "Register Account"
-msgstr "계정 등록"
-
-#: ../src/gooroom-greeter.ui.h:8
 msgid "Enter your username"
 msgstr "사용자 입력"
 
-#: ../src/gooroom-greeter.ui.h:9
+#: ../src/gooroom-greeter.ui.h:4
 msgid "Enter your password"
 msgstr "암호 입력"
 
-#: ../src/gooroom-greeter.ui.h:10
-msgid "Go to home"
-msgstr "메인화면으로 이동"
-
-#: ../src/gooroom-greeter.ui.h:11
-msgid "<b>Home</b>"
-msgstr "<b>메인화면</b>"
-
-#: ../src/gooroom-greeter.ui.h:12
-msgid "Hibernate system"
-msgstr "시스템을 최대절전모드로 전환합니다."
-
-#: ../src/gooroom-greeter.ui.h:13
-msgid "<b>Hibernate</b>"
-msgstr "<b>최대절전</b>"
-
-#: ../src/gooroom-greeter.ui.h:14
-msgid "Suspend system"
-msgstr "시스템을 절전모드로 전환합니다."
-
-#: ../src/gooroom-greeter.ui.h:15
-msgid "<b>Suspend</b>"
-msgstr "<b>절전</b>"
-
-#: ../src/gooroom-greeter.ui.h:16
-msgid "Restart system"
-msgstr "시스템을 다시 시작합니다."
-
-#: ../src/gooroom-greeter.ui.h:17
-msgid "<b>Restart</b>"
-msgstr "<b>재시작</b>"
-
-#: ../src/gooroom-greeter.ui.h:18
+#: ../src/gooroom-greeter.ui.h:5
 msgid "Shutdown system"
 msgstr "시스템을 종료합니다."
 
-#: ../src/gooroom-greeter.ui.h:19
+#: ../src/gooroom-greeter.ui.h:6
 msgid "<b>Shutdown</b>"
 msgstr "<b>종료</b>"
 
-#: ../src/gooroom-greeter.ui.h:20
-msgid "<span size=\"large\"><b>Account Registration</b></span>"
-msgstr "<span size=\"large\"><b>계정 등록</b></span>"
+#: ../src/gooroom-greeter.ui.h:7
+msgid "Hibernate system"
+msgstr "시스템을 최대절전모드로 전환합니다."
 
-#: ../src/gooroom-greeter.ui.h:21
-msgid "Please enter your cloud account to register for this system."
-msgstr "시스템에 등록 할 클라우드 계정(이메일)을 입력하세요."
+#: ../src/gooroom-greeter.ui.h:8
+msgid "<b>Hibernate</b>"
+msgstr "<b>최대절전</b>"
+
+#: ../src/gooroom-greeter.ui.h:9
+msgid "Suspend system"
+msgstr "시스템을 절전모드로 전환합니다."
+
+#: ../src/gooroom-greeter.ui.h:10
+msgid "<b>Suspend</b>"
+msgstr "<b>절전</b>"
+
+#: ../src/gooroom-greeter.ui.h:11
+msgid "Restart system"
+msgstr "시스템을 다시 시작합니다."
+
+#: ../src/gooroom-greeter.ui.h:12
+msgid "<b>Restart</b>"
+msgstr "<b>재시작</b>"

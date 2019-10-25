@@ -1,4 +1,0 @@
-#!/bin/bash
-
-export SHELL=/bin/bash
-pkexec --user $1 --disable-internal-agent /usr/bin/killall gooroom-browser

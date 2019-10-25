@@ -1,4 +1,4 @@
-SUBDIRS = icons images
+SUBDIRS = images
 
 xgreetersdir = $(datadir)/xgreeters
 dist_xgreeters_DATA = gooroom-greeter.desktop

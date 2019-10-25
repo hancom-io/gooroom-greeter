@@ -1,14 +1,8 @@
-pkglibexec_SCRIPTS = browser-pkexec browser-killall
-
 sbin_PROGRAMS = gooroom-greeter
 
 BUILT_SOURCES = \
 	greeter-resources.c \
 	greeter-resources.h
-
-
-#gooroom_greeter_built_sources = \
-#	gooroom-greeter-ui.h
 
 gooroom_greeter_SOURCES = \
 	$(BUILT_SOURCES) \
@@ -20,8 +14,6 @@ gooroom_greeter_SOURCES = \
 	greeterconfiguration.c \
 	greeterconfiguration.h
 
-#	$(gooroom_greeter_built_sources)
-
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DHAVE_CONFIG_H \
@@ -29,8 +21,6 @@ AM_CPPFLAGS = \
 	-DPKGDATA_DIR=\"$(pkgdatadir)\" \
 	-DCONFIG_FILE=\"$(sysconfdir)/lightdm/gooroom-greeter.conf\" \
 	-DINDICATOR_DIR=\"$(INDICATORDIR)\"	\
-	-DBROWSER_PKEXEC=\"$(pkglibexecdir)/browser-pkexec\" \
-	-DBROWSER_KILLALL=\"$(pkglibexecdir)/browser-killall\" \
 	-DGOOROOM_SPLASH=\"$(libdir)/gooroom-splash/gooroom-splash\" \
 	-DGOOROOM_NOTIFYD=\"$(libdir)/gooroom-notifyd/gooroom-notifyd\" \
 	$(WARN_CFLAGS)
@@ -63,14 +53,6 @@ greeter-resources.c: gresource.xml $(resource_files)
 	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-source --c-name greeter $<
 greeter-resources.h: gresource.xml $(resource_files)
 	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-header --c-name greeter $<
-
-@INTLTOOL_POLICY_RULE@
-polkitdir = $(datadir)/polkit-1/actions
-polkit_in_files = kr.gooroom.greeter.policy.in
-polkit_DATA = $(polkit_in_files:.policy.in=.policy)
-
-CLEANFILES = \
-	kr.gooroom.greeter.policy
 
 DISTCLEANFILES = \
 	$(BUILT_SOURCES)

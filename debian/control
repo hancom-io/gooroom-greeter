@@ -20,6 +20,6 @@ Homepage: https://git.gooroom.kr/gooroom-greeter
 Package: gooroom-greeter
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, lightdm, gooroom-cloud-login-service
-Description: Simple display manager (GTK+ greeter)
+Description: Simple display manager
  gooroom-greeter is greeter shell for the LightDM login manager.
  It uses the GTK+ toolkit and integrates well with Gooroom platform.

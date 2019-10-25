@@ -36,8 +36,6 @@
 #define CONFIG_KEY_PANEL_POSITION       "panel-position"
 #define CONFIG_KEY_KEYBOARD_POSITION    "keyboard-position"
 #define CONFIG_KEY_A11Y_STATES          "a11y-states"
-#define CONFIG_KEY_ALLOW_CLOUD_LOGIN    "allow-cloud-login"
-#define CONFIG_KEY_USE_HSM              "use-hsm"
 
 #define CONFIG_GROUP_MONITOR            "monitor:"
 #define CONFIG_KEY_BACKGROUND           "background"

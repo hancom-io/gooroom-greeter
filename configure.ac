@@ -58,7 +58,6 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", Gettext package)
 AC_CONFIG_FILES([
 Makefile
 data/Makefile
-data/icons/Makefile
 data/images/Makefile
 po/Makefile.in
 src/Makefile
