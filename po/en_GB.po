@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-25 11:47+0900\n"
+"POT-Creation-Date: 2019-10-28 23:46+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -17,62 +17,62 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gooroom-greeter.c:530
+#: ../src/gooroom-greeter.c:547
 #, c-format
 msgid "Warning: There is still %d user logged in."
 msgid_plural "Warning: There are still %d users logged in."
 msgstr[0] "Warning: There is still %d user logged in."
 msgstr[1] "Warning: There are still %d users logged in."
 
-#: ../src/gooroom-greeter.c:565
+#: ../src/gooroom-greeter.c:584
 msgid "System Shutdown"
 msgstr "System Shutdown"
 
-#: ../src/gooroom-greeter.c:566
+#: ../src/gooroom-greeter.c:585
 msgid "Are you sure you want to close all programs and shut down the computer?"
 msgstr ""
 "Are you sure you want to close all programs and shut down the computer?"
 
-#: ../src/gooroom-greeter.c:571
+#: ../src/gooroom-greeter.c:590
 msgid "System Restart"
 msgstr "System Restart"
 
-#: ../src/gooroom-greeter.c:572
+#: ../src/gooroom-greeter.c:591
 msgid "Are you sure you want to close all programs and restart the computer?"
 msgstr "Are you sure you want to close all programs and restart the computer?"
 
-#: ../src/gooroom-greeter.c:577
+#: ../src/gooroom-greeter.c:596
 msgid "System Suspend"
 msgstr "System Suspend"
 
-#: ../src/gooroom-greeter.c:578
+#: ../src/gooroom-greeter.c:597
 msgid "Are you sure you want to suspend the computer?"
 msgstr "Are you sure you want to suspend the computer?"
 
-#: ../src/gooroom-greeter.c:583
+#: ../src/gooroom-greeter.c:602
 msgid "System Hibernate"
 msgstr "System Hibernate"
 
-#: ../src/gooroom-greeter.c:584
+#: ../src/gooroom-greeter.c:603
 msgid "Are you sure you want to hibernate the computer?"
 msgstr "Are you sure you want to hibernate the computer?"
 
-#: ../src/gooroom-greeter.c:1027
+#: ../src/gooroom-greeter.c:1028
 msgid ""
 "You are required to change your password immediately (administrator enforced)"
 msgstr ""
 "You are required to change your password immediately (administrator enforced)"
 
-#: ../src/gooroom-greeter.c:1028
+#: ../src/gooroom-greeter.c:1029
 msgid "You are required to change your password immediately (password expired)"
 msgstr ""
 "You are required to change your password immediately (password expired)"
 
-#: ../src/gooroom-greeter.c:1046
+#: ../src/gooroom-greeter.c:1048
 msgid "Password Expiration"
 msgstr "Password Expiration"
 
-#: ../src/gooroom-greeter.c:1047
+#: ../src/gooroom-greeter.c:1049
 msgid ""
 "Your password has expired.\n"
 "Please change your password immediately."
@@ -80,19 +80,19 @@ msgstr ""
 "Your password has expired.\n"
 "Please change your password immediately."
 
-#: ../src/gooroom-greeter.c:1048 ../src/gooroom-greeter.c:1054
+#: ../src/gooroom-greeter.c:1050 ../src/gooroom-greeter.c:1056
 msgid "Changing Password"
 msgstr "Changing Password"
 
-#: ../src/gooroom-greeter.c:1048 ../src/gooroom-greeter.c:1054
+#: ../src/gooroom-greeter.c:1050 ../src/gooroom-greeter.c:1056
 msgid "Cancel"
 msgstr "Cancel"
 
-#: ../src/gooroom-greeter.c:1052
+#: ../src/gooroom-greeter.c:1054
 msgid "Temporary Password Warning"
 msgstr "Temporary Password Warning"
 
-#: ../src/gooroom-greeter.c:1053
+#: ../src/gooroom-greeter.c:1055
 msgid ""
 "Your password has been issued temporarily.\n"
 "For security reasons, please change your password immediately."
@@ -100,7 +100,7 @@ msgstr ""
 "Your password has been issued temporarily.\n"
 "For security reasons, please change your password immediately."
 
-#: ../src/gooroom-greeter.c:1061
+#: ../src/gooroom-greeter.c:1063
 #, c-format
 msgid ""
 "Please change your password for security.\n"
@@ -113,7 +113,7 @@ msgstr ""
 "can no longer log in.\n"
 "Do you want to change password now?"
 
-#: ../src/gooroom-greeter.c:1066
+#: ../src/gooroom-greeter.c:1068
 #, c-format
 msgid ""
 "Please change your password for security.\n"
@@ -126,7 +126,7 @@ msgstr ""
 "can no longer log in.\n"
 "Do you want to change password now?"
 
-#: ../src/gooroom-greeter.c:1072
+#: ../src/gooroom-greeter.c:1074
 msgid ""
 "Please change your password for security.\n"
 "If you do not change your password within a few days, your password expires."
@@ -138,19 +138,19 @@ msgstr ""
 "You can no longer log in.\n"
 "Do you want to change password now?"
 
-#: ../src/gooroom-greeter.c:1079
+#: ../src/gooroom-greeter.c:1081
 msgid "Password Maxday Warning"
 msgstr "Password Expiration Warning"
 
-#: ../src/gooroom-greeter.c:1080
+#: ../src/gooroom-greeter.c:1082
 msgid "Change now"
-msgstr ""
+msgstr "Change now"
 
-#: ../src/gooroom-greeter.c:1080
+#: ../src/gooroom-greeter.c:1082
 msgid "Later"
 msgstr "Later"
 
-#: ../src/gooroom-greeter.c:1089
+#: ../src/gooroom-greeter.c:1091
 #, c-format
 msgid ""
 "Your account will not be available after %s.\n"
@@ -159,7 +159,7 @@ msgstr ""
 "Your account will not be available after %s.\n"
 "Your account will expire in %s day"
 
-#: ../src/gooroom-greeter.c:1093
+#: ../src/gooroom-greeter.c:1095
 #, c-format
 msgid ""
 "Your account will not be available after %s.\n"
@@ -168,63 +168,85 @@ msgstr ""
 "Your account will not be available after %s.\n"
 "Your account will expire in %s days"
 
-#: ../src/gooroom-greeter.c:1100
+#: ../src/gooroom-greeter.c:1102
 msgid "Account Expiration Warning"
 msgstr "Account Expiration Warning"
 
-#: ../src/gooroom-greeter.c:1101 ../src/gooroom-greeter.c:1122
-#: ../src/gooroom-greeter.c:1151 ../src/gooroom-greeter.c:1786
-#: ../src/gooroom-greeter.ui.h:1
+#: ../src/gooroom-greeter.c:1103 ../src/gooroom-greeter.c:1124
+#: ../src/gooroom-greeter.c:1145 ../src/gooroom-greeter.c:1174
+#: ../src/gooroom-greeter.c:1818 ../src/gooroom-greeter.ui.h:1
 msgid "Ok"
 msgstr "Ok"
 
-#: ../src/gooroom-greeter.c:1110
+#: ../src/gooroom-greeter.c:1112
 #, c-format
 msgid ""
 "Your organization will not be available after %s.\n"
 "Your organization will expire in %s day"
 msgstr ""
-"Your account will not be available after %s.\n"
-"Your account will expire in %s day"
+"Your organization will not be available after %s.\n"
+"Your organization will expire in %s day"
 
-#: ../src/gooroom-greeter.c:1114
+#: ../src/gooroom-greeter.c:1116
 #, c-format
 msgid ""
-"Your orgranization will not be available after %s.\n"
-"Your orgranization will expire in %s days"
+"Your organization will not be available after %s.\n"
+"Your organization will expire in %s days"
 msgstr ""
-"Your account will not be available after %s.\n"
-"Your account will expire in %s days"
+"Your organization will not be available after %s.\n"
+"Your organization will expire in %s days"
 
-#: ../src/gooroom-greeter.c:1121
+#: ../src/gooroom-greeter.c:1123
 msgid "Division Expiration Warning"
-msgstr "Account Expiration Warning"
+msgstr "Division Expiration Warning"
 
-#: ../src/gooroom-greeter.c:1127
+#: ../src/gooroom-greeter.c:1133
+#, c-format
+msgid ""
+"Your password will not be available after %s.\n"
+"Your password will expire in %s day"
+msgstr ""
+"Your password will not be available after %s.\n"
+"Your password will expire in %s day"
+
+#: ../src/gooroom-greeter.c:1137
+#, c-format
+msgid ""
+"Your password will not be available after %s.\n"
+"Your password will expire in %s days"
+msgstr ""
+"Your password will not be available after %s.\n"
+"Your password will expire in %s days"
+
+#: ../src/gooroom-greeter.c:1144
+msgid "Passowrd Expiration Warning"
+msgstr "Password Expiration Warning"
+
+#: ../src/gooroom-greeter.c:1150
 msgid "Duplicate logins detected with the same ID."
 msgstr "Duplicate logins detected with the same ID."
 
-#: ../src/gooroom-greeter.c:1130
+#: ../src/gooroom-greeter.c:1153
 msgid "Client ID"
 msgstr "Client ID"
 
-#: ../src/gooroom-greeter.c:1135
+#: ../src/gooroom-greeter.c:1158
 msgid "Client Name"
 msgstr "Client Name"
 
-#: ../src/gooroom-greeter.c:1140
+#: ../src/gooroom-greeter.c:1163
 msgid "IP"
 msgstr "IP"
 
-#: ../src/gooroom-greeter.c:1145
+#: ../src/gooroom-greeter.c:1168
 msgid "Local IP"
 msgstr "Local IP"
 
-#: ../src/gooroom-greeter.c:1150
+#: ../src/gooroom-greeter.c:1173
 msgid "Duplicate Login Notification"
 msgstr "Duplicate Login Notification"
 
-#: ../src/gooroom-greeter.c:1159
+#: ../src/gooroom-greeter.c:1182
 #, c-format
 msgid ""
 "Authentication Failure\n"
@@ -238,44 +260,44 @@ msgstr ""
 "You have %s login attempts remaining.\n"
 "You can no longer log in when the maximum number of login attempts is "
 "exceeded."
-
-#: ../src/gooroom-greeter.c:1167
-#, c-format
-msgid ""
-"Your account has been locked because you have exceeded the number of login "
-"attempts.\n"
-"Please try again in a moment."
-msgstr ""
-"Your account has been locked because you have exceeded the number of login "
-"attempts.\n"
-"Please try again in a moment."
-
-#: ../src/gooroom-greeter.c:1173
-#, c-format
-msgid ""
-"This account has expired and is no longer available.\n"
-"Please contact the administrator."
-msgstr ""
-"This account has expired and is no longer available.\n"
-"Please contact the administrator."
-
-#: ../src/gooroom-greeter.c:1179
-#, c-format
-msgid ""
-"The password for your account has expired.\n"
-"Please contact the administrator."
-msgstr ""
-"The password for your account has expired.\n"
-"Please contact the administrator."
-
-#: ../src/gooroom-greeter.c:1185
-#, c-format
-msgid "Login Failure (Duplicate Login)"
-msgstr "Login Failure (Duplicate Login)"
 
 #: ../src/gooroom-greeter.c:1190
 #, c-format
 msgid ""
+"Your account has been locked because you have exceeded the number of login "
+"attempts.\n"
+"Please try again in a moment."
+msgstr ""
+"Your account has been locked because you have exceeded the number of login "
+"attempts.\n"
+"Please try again in a moment."
+
+#: ../src/gooroom-greeter.c:1196
+#, c-format
+msgid ""
+"This account has expired and is no longer available.\n"
+"Please contact the administrator."
+msgstr ""
+"This account has expired and is no longer available.\n"
+"Please contact the administrator."
+
+#: ../src/gooroom-greeter.c:1202
+#, c-format
+msgid ""
+"The password for your account has expired.\n"
+"Please contact the administrator."
+msgstr ""
+"The password for your account has expired.\n"
+"Please contact the administrator."
+
+#: ../src/gooroom-greeter.c:1208
+#, c-format
+msgid "Login Failure (Duplicate Login)"
+msgstr "Login Failure (Duplicate Login)"
+
+#: ../src/gooroom-greeter.c:1213
+#, c-format
+msgid ""
 "Due to the expiration of your organization, this account is no longer "
 "available.\n"
 "Please contact the administrator."
@@ -284,7 +306,7 @@ msgstr ""
 "available.\n"
 "Please contact the administrator."
 
-#: ../src/gooroom-greeter.c:1195
+#: ../src/gooroom-greeter.c:1218
 #, c-format
 msgid ""
 "Login attempts exceeded the number of times, so you cannot login for a "
@@ -295,59 +317,59 @@ msgstr ""
 "certain period of time.\n"
 "Please try again in a moment."
 
-#: ../src/gooroom-greeter.c:1219
+#: ../src/gooroom-greeter.c:1242
 msgid "Current password: "
 msgstr "Current password: "
 
-#: ../src/gooroom-greeter.c:1220
+#: ../src/gooroom-greeter.c:1243
 msgid "Changing Password - [Step 1]"
 msgstr "Changing Password - [Step 1]"
 
-#: ../src/gooroom-greeter.c:1221
+#: ../src/gooroom-greeter.c:1244
 msgid "Enter current password :"
 msgstr "Enter current password :"
 
-#: ../src/gooroom-greeter.c:1223
+#: ../src/gooroom-greeter.c:1246
 msgid "New password: "
 msgstr "New password: "
 
-#: ../src/gooroom-greeter.c:1224
+#: ../src/gooroom-greeter.c:1247
 msgid "Changing Password - [Step 2]"
 msgstr "Changing Password - [Step 2]"
 
-#: ../src/gooroom-greeter.c:1225
+#: ../src/gooroom-greeter.c:1248
 msgid "Enter new password :"
 msgstr "Enter new password :"
 
-#: ../src/gooroom-greeter.c:1227
+#: ../src/gooroom-greeter.c:1250
 msgid "Retype new password: "
 msgstr "Retype new password: "
 
-#: ../src/gooroom-greeter.c:1228
+#: ../src/gooroom-greeter.c:1251
 msgid "Changing Password - [Step 3]"
 msgstr "Changing Password - [Step 3]"
 
-#: ../src/gooroom-greeter.c:1229
+#: ../src/gooroom-greeter.c:1252
 msgid "Retype new password :"
 msgstr "Retype new password :"
 
-#: ../src/gooroom-greeter.c:1356
+#: ../src/gooroom-greeter.c:1379
 msgid "Failed to start session"
 msgstr "Failed to start session"
 
-#: ../src/gooroom-greeter.c:1773
+#: ../src/gooroom-greeter.c:1805
 msgid "Login Failure (Authentication Failure)"
 msgstr "Login Failure (Authentication Failure)"
 
-#: ../src/gooroom-greeter.c:1780
+#: ../src/gooroom-greeter.c:1812
 msgid "Failed to authenticate"
 msgstr "Failed to authenticate"
 
-#: ../src/gooroom-greeter.c:1784
+#: ../src/gooroom-greeter.c:1816
 msgid "Failure Of Changing Password"
 msgstr "Failure Of Changing Password"
 
-#: ../src/gooroom-greeter.c:1785
+#: ../src/gooroom-greeter.c:1817
 msgid ""
 "Failed to change password.\n"
 "Please try again."

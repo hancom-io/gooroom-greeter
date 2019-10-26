@@ -190,6 +190,23 @@ gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *
 static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
 
+static gchar **
+get_envp (void)
+{
+	gchar **envp = NULL;
+
+	if (!default_theme_name)
+		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
+
+	if (!default_icon_theme_name)
+		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
+
+	envp = g_get_environ ();
+	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
+	envp = g_environ_setenv (envp, "ICON_THEME", default_icon_theme_name, TRUE);
+
+	return envp;
+}
 
 /* Clock */
 static gboolean
@@ -596,34 +613,30 @@ on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 static void
 wm_start (void)
 {
-	gchar **argv = NULL;
-	g_shell_parse_argv ("/usr/bin/metacity", NULL, &argv, NULL);
+	gchar **argv = NULL, **envp = NULL;
+	const gchar *cmd = "/usr/bin/metacity";
 
-	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	envp = get_envp ();
+
+	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
 	g_strfreev (argv);
+	g_strfreev (envp);
 }
 
 static void
 notify_service_start (void)
 {
-	gchar *cmd = NULL;
-	gchar **argv = NULL, **envp;
+	gchar **argv = NULL, **envp = NULL;
+	const gchar *cmd = "/usr/bin/gsettings set apps.gooroom-notifyd notify-location 2";
+
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
 
 	g_shell_parse_argv (GOOROOM_NOTIFYD, NULL, &argv, NULL);
 
-	if (!default_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-
-	if (!default_icon_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-
-	envp = g_get_environ ();
-	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
-	envp = g_environ_setenv (envp, "ICON_THEME", default_icon_theme_name, TRUE);
-
-	cmd = "/usr/bin/gsettings set apps.gooroom-notifyd notify-location 2";
-	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
+	envp = get_envp ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -636,6 +649,7 @@ indicator_application_service_start (void)
 {
 	gchar **argv = NULL;
 	const gchar *cmd = "systemctl --user start ayatana-indicator-application";
+
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
 	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
@@ -648,17 +662,10 @@ network_indicator_application_start (void)
 {
 	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "nm-applet --indicator";
+
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	if (!default_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-
-	if (!default_icon_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-
-	envp = g_get_environ ();
-	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
-	envp = g_environ_setenv (envp, "ICON_THEME", "Papirus", TRUE);
+	envp = get_envp ();
 	/* Make nm-applet hide items the user does not have permissions to interact with */
 	envp = g_environ_setenv (envp, "NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
 
@@ -671,21 +678,13 @@ network_indicator_application_start (void)
 static void
 other_indicator_application_start (void)
 {
-	gchar **envp;
+	gchar **envp = NULL;
 	gchar **app_indicators = config_get_string_list (NULL, "app-indicators", NULL);
 
 	if (!app_indicators)
 		return;
 
-	if (!default_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-
-	if (!default_icon_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-
-	envp = g_get_environ ();
-	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
-	envp = g_environ_setenv (envp, "ICON_THEME", "Papirus", TRUE);
+	envp = get_envp ();
 
 	guint i;
 	for (i = 0; app_indicators[i] != NULL; i++) {
@@ -696,7 +695,6 @@ other_indicator_application_start (void)
 	}
 
 	g_strfreev (envp);
-
 	g_strfreev (app_indicators);
 }
 
@@ -1031,9 +1029,9 @@ process_prompts (LightDMGreeter *greeter)
 		const gchar *filter_msg_020 = g_dgettext("Linux-PAM", "You are required to change your password immediately (password expired)");
 		const gchar *filter_msg_030 = "Temporary Password";
 		const gchar *filter_msg_040 = "Password Maxday Warning";
-//		const gchar *filter_msg_041 = "Password Expiration Warning";
 		const gchar *filter_msg_050 = "Account Expiration Warning";
 		const gchar *filter_msg_051 = "Division Expiration Warning";
+		const gchar *filter_msg_052 = "Password Expiration Warning";
 		const gchar *filter_msg_060 = "Duplicate Login Notification";
 		const gchar *filter_msg_070 = "Authentication Failure";
 		const gchar *filter_msg_080 = "Account Locking";
@@ -1115,8 +1113,8 @@ process_prompts (LightDMGreeter *greeter)
 								"Your organization will expire in %s day"),
 							tokens[1], tokens[2]);
 				} else {
-					msg = g_strdup_printf (_("Your orgranization will not be available after %s.\n"
-								"Your orgranization will expire in %s days"),
+					msg = g_strdup_printf (_("Your organization will not be available after %s.\n"
+								"Your organization will expire in %s days"),
 							tokens[1], tokens[2]);
 				}
 			}
@@ -1124,6 +1122,27 @@ process_prompts (LightDMGreeter *greeter)
 
 			show_msg_window (_("Division Expiration Warning"),
 					msg, _("Ok"), "DEPT_EXP_OK");
+			g_free (msg);
+
+			continue;
+		} else if (g_str_has_prefix (message->text, filter_msg_052)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 2) {
+				if (g_str_equal (tokens[1], "1")) {
+					msg = g_strdup_printf (_("Your password will not be available after %s.\n"
+								"Your password will expire in %s day"),
+							tokens[1], tokens[2]);
+				} else {
+					msg = g_strdup_printf (_("Your password will not be available after %s.\n"
+								"Your password will expire in %s days"),
+							tokens[1], tokens[2]);
+				}
+			}
+			g_strfreev (tokens);
+
+			show_msg_window (_("Passowrd Expiration Warning"),
+					msg, _("Ok"), "PASS_EXP_OK");
 			g_free (msg);
 
 			continue;
@@ -1657,6 +1676,15 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 			lightdm_greeter_respond (greeter, "dept_exp_ok");
 #endif
 		}
+    } else if (g_str_equal (data, "PASS_EXP_OK")) {
+		if (lightdm_greeter_get_in_authentication (greeter)) {
+
+#ifdef HAVE_LIBLIGHTDMGOBJECT_1_19_2
+			lightdm_greeter_respond (greeter, "pass_exp_ok", NULL);
+#else
+			lightdm_greeter_respond (greeter, "pass_exp_ok");
+#endif
+		}
     } else if (g_str_equal (data, "DUPLICATE_LOGIN_OK")) {
 		if (lightdm_greeter_get_in_authentication (greeter)) {
 
@@ -1852,6 +1880,7 @@ main (int argc, char **argv)
 
     gchar **arr = NULL;
     const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
+
     g_shell_parse_argv (cmd, NULL, &arr, NULL);
 
     g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
@@ -1907,9 +1936,6 @@ main (int argc, char **argv)
 	}
 	g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
 	g_debug ("[Configuration] Icons theme: '%s'", default_icon_theme_name);
-
-	g_setenv ("GTK_THEME", default_theme_name, TRUE);
-	g_setenv ("ICON_THEME", default_icon_theme_name, TRUE);
 
 	value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
 	if (value)
@@ -2117,6 +2143,10 @@ main (int argc, char **argv)
     g_debug ("Run Gtk loop...");
     gtk_main ();
     g_debug ("Gtk loop exits");
+
+	g_free (default_font_name);
+	g_free (default_theme_name);
+	g_free (default_icon_theme_name);
 
     if (devices) {
         g_ptr_array_foreach (devices, (GFunc) g_object_unref, NULL);
