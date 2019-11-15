@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-28 23:46+0900\n"
+"POT-Creation-Date: 2019-11-15 21:59+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -175,7 +175,7 @@ msgstr "계정 만료 경고"
 
 #: ../src/gooroom-greeter.c:1103 ../src/gooroom-greeter.c:1124
 #: ../src/gooroom-greeter.c:1145 ../src/gooroom-greeter.c:1174
-#: ../src/gooroom-greeter.c:1818 ../src/gooroom-greeter.ui.h:1
+#: ../src/gooroom-greeter.c:1790 ../src/gooroom-greeter.ui.h:1
 msgid "Ok"
 msgstr "확인"
 
@@ -357,19 +357,19 @@ msgstr "새 암호 재입력 :"
 msgid "Failed to start session"
 msgstr "세션을 시작할 수 없습니다."
 
-#: ../src/gooroom-greeter.c:1805
+#: ../src/gooroom-greeter.c:1777
 msgid "Login Failure (Authentication Failure)"
 msgstr "로그인 실패 (사용자 인증 오류)"
 
-#: ../src/gooroom-greeter.c:1812
+#: ../src/gooroom-greeter.c:1784
 msgid "Failed to authenticate"
 msgstr "인증에 실패하였습니다."
 
-#: ../src/gooroom-greeter.c:1816
+#: ../src/gooroom-greeter.c:1788
 msgid "Failure Of Changing Password"
 msgstr "패스워드 변경 실패"
 
-#: ../src/gooroom-greeter.c:1817
+#: ../src/gooroom-greeter.c:1789
 msgid ""
 "Failed to change password.\n"
 "Please try again."
