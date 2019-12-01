@@ -15,11 +15,10 @@ Build-Depends: debhelper (>= 9),
                libayatana-ido3-dev,
                libayatana-indicator3-dev,
 Standards-Version: 3.9.8
-Homepage: https://git.gooroom.kr/gooroom-greeter
 
 Package: gooroom-greeter
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, lightdm, gooroom-cloud-login-service
+Depends: ${shlibs:Depends}, ${misc:Depends}, lightdm
 Description: Simple display manager
  gooroom-greeter is greeter shell for the LightDM login manager.
  It uses the GTK+ toolkit and integrates well with Gooroom platform.
