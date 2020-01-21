@@ -660,9 +660,19 @@ indicator_application_service_start (void)
 static void
 network_indicator_application_start (void)
 {
+	const gchar *cmd;
 	gchar **argv = NULL, **envp = NULL;
-	const gchar *cmd = "nm-applet --indicator";
 
+	cmd = "/usr/bin/gsettings set org.gnome.nm-applet disable-connected-notifications true";
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
+
+	cmd = "/usr/bin/gsettings set org.gnome.nm-applet disable-disconnected-notifications true";
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
+
+	cmd = "/usr/bin/gsettings set org.gnome.nm-applet suppress-wireless-networks-available true";
+	g_spawn_command_line_sync (cmd, NULL, NULL, NULL, NULL);
+
+	cmd = "nm-applet --indicator";
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
 	envp = get_envp ();
@@ -1525,48 +1535,48 @@ pw_set_win_key_press_event_cb (GtkWidget *widget, GdkEventKey *event, gpointer u
 void
 cmd_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 {
+	hide_all_windows ();
+	gtk_widget_show_all (last_show_win);
+
+	if (last_show_win == login_win) {
+		gtk_widget_grab_focus (login_win_username_entry);
+	} else if (last_show_win == msg_win) {
+		gtk_widget_grab_focus (GTK_WIDGET (msg_win_ok_button));
+	} else if (last_show_win == ask_win) {
+		gtk_widget_grab_focus (GTK_WIDGET (ask_win_ok_button));
+	} else if (last_show_win == pw_set_win) {
+		gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
+	}
+
 	if (button == cmd_win_cancel_button) {
-		hide_all_windows ();
-		gtk_widget_show_all (last_show_win);
-
-		if (last_show_win == login_win) {
-			gtk_widget_grab_focus (login_win_username_entry);
-		} else if (last_show_win == msg_win) {
-			gtk_widget_grab_focus (GTK_WIDGET (msg_win_ok_button));
-		} else if (last_show_win == ask_win) {
-			gtk_widget_grab_focus (GTK_WIDGET (ask_win_ok_button));
-		} else if (last_show_win == pw_set_win) {
-			gtk_widget_grab_focus (GTK_WIDGET (pw_set_win_prompt_entry));
-		}
-
 		return;
 	}
 
-    int type = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cmd_win), CMD_WIN_DATA));
+	int type = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cmd_win), CMD_WIN_DATA));
 
-    if (button == cmd_win_ok_button) {
-        switch (type)
-        {
-            case SYSTEM_SHUTDOWN:
-                lightdm_shutdown (NULL);
-                break;
+	if (button == cmd_win_ok_button) {
+		switch (type)
+		{
+			case SYSTEM_SHUTDOWN:
+				lightdm_shutdown (NULL);
+				break;
 
-            case SYSTEM_RESTART:
-                lightdm_restart (NULL);
-                break;
+			case SYSTEM_RESTART:
+				lightdm_restart (NULL);
+				break;
 
-            case SYSTEM_SUSPEND:
-                lightdm_suspend (NULL);
-                break;
+			case SYSTEM_SUSPEND:
+				lightdm_suspend (NULL);
+				break;
 
-            case SYSTEM_HIBERNATE:
-                lightdm_hibernate (NULL);
-                break;
+			case SYSTEM_HIBERNATE:
+				lightdm_hibernate (NULL);
+				break;
 
-            default:
-                return;
-        }
-    }
+			default:
+				return;
+		}
+	}
 }
 
 gboolean
