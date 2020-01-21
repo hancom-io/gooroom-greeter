@@ -1191,6 +1191,8 @@ process_prompts (LightDMGreeter *greeter)
 			if (g_strv_length (tokens) > 1) {
 				msg = g_strdup_printf (_("Authentication Failure\n\nYou have %s login attempts remaining.\n"
 							"You can no longer log in when the maximum number of login attempts is exceeded."), tokens[1]);
+			} else {
+				msg = g_strdup_printf (_("Login Failure (Authentication Failure)"));
 			}
 			g_strfreev (tokens);
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
