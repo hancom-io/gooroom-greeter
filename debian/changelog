@@ -1,3 +1,14 @@
+gooroom-greeter (0.2.4+grm2u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [079a89d9] [Bug:1271] 절전모드 해제시 팝업창 노출이슈 해결, nm-applet 위치오류 수정
+  * [b5518a6b] 삭제된 사용자의 인증실패 메세지 처리
+  * [f67312ca] Modify copyright
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 11 Feb 2020 10:05:40 +0900
+
 gooroom-greeter (0.2.3+grm2u1) unstable; urgency=medium
 
   [ cjheo ]
