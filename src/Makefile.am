@@ -1,10 +1,11 @@
 sbin_PROGRAMS = gooroom-greeter
 
-gooroom_greeter_built_sources = \
-	gooroom-greeter-ui.h
+BUILT_SOURCES = \
+	greeter-resources.c \
+	greeter-resources.h
 
 gooroom_greeter_SOURCES = \
-	$(gooroom_greeter_built_sources) \
+	$(BUILT_SOURCES) \
 	indicator-button.h	\
 	indicator-button.c	\
 	gooroom-greeter.c \
@@ -16,43 +17,42 @@ gooroom_greeter_SOURCES = \
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-DHAVE_CONFIG_H \
-	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\" \
-	-DLOCALEDIR=\""$(localedir)"\" \
-	-DPKGDATA_DIR=\""$(datadir)/gooroom-greeter"\" \
-	-DCONFIG_FILE=\""$(sysconfdir)/lightdm/gooroom-greeter.conf"\" \
-	-DINDICATOR_DIR=\""$(INDICATORDIR)"\"	\
+	-DLOCALEDIR=\"$(localedir)\" \
+	-DPKGDATA_DIR=\"$(pkgdatadir)\" \
+	-DCONFIG_FILE=\"$(sysconfdir)/lightdm/gooroom-greeter.conf\" \
+	-DINDICATOR_DIR=\"$(INDICATORDIR)\"	\
+	-DGOOROOM_SPLASH=\"$(libdir)/gooroom-splash/gooroom-splash\" \
+	-DGOOROOM_NOTIFYD=\"$(libdir)/gooroom-notifyd/gooroom-notifyd\" \
 	$(WARN_CFLAGS)
 
 gooroom_greeter_CFLAGS = \
 	$(GTK_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(GIO_CFLAGS) \
 	$(GMODULE_CFLAGS) \
 	$(UPOWER_CFLAGS) \
 	$(GTHREAD_CFLAGS) \
 	$(LIGHTDMGOBJECT_CFLAGS) \
-	$(INDICATOR_CFLAGS) \
-	$(LIBX11_CFLAGS)
+	$(LIBX11_CFLAGS) \
+    $(AYATANA_INDICATOR_NG_CFLAGS)
 
 gooroom_greeter_LDADD = \
 	$(GTK_LIBS) \
+	$(GLIB_LIBS) \
+	$(GIO_LIBS) \
 	$(GMODULE_LIBS) \
 	$(UPOWER_LIBS) \
 	$(GTHREAD_LIBS) \
 	$(LIGHTDMGOBJECT_LIBS) \
-	$(INDICATOR_LIBS) \
 	$(LIBX11_LIBS) \
+	$(AYATANA_INDICATOR_NG_LIBS) \
 	-lm
 
-
-gooroom-greeter-ui.h: $(srcdir)/gooroom-greeter.glade Makefile
-	$(AM_V_GEN) exo-csource --static --strip-comments --strip-content --name=gooroom_greeter_ui $< >$@
+resource_files = $(shell glib-compile-resources --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/gresource.xml)
+greeter-resources.c: gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-source --c-name greeter $<
+greeter-resources.h: gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-header --c-name greeter $<
 
 DISTCLEANFILES = \
-	$(gooroom_greeter_built_sources)
-
-BUILT_SOURCES = \
-	$(gooroom_greeter_built_sources)
-
-
-
-EXTRA_DIST = \
-	gooroom-greeter.glade
+	$(BUILT_SOURCES)

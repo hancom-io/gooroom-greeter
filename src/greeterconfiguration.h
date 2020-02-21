@@ -8,6 +8,7 @@
  * license.
  */
 
+
 #ifndef GREETER_CONFIGURATION_H
 #define GREETER_CONFIGURATION_H
 

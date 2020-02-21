@@ -23,7 +23,8 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include <libindicator/indicator-object.h>
+#include <libayatana-indicator/indicator-object.h>
+
 
 G_BEGIN_DECLS
 

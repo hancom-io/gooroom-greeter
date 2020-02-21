@@ -1,5 +1,5 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Source: http://git.gooroom.kr/gooroom-greeter/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://github.com/gooroom/gooroom-greeter/
 
 Files: *
 Copyright: Sean Davis
@@ -60,6 +60,14 @@ License: GPL-2
  `/usr/share/common-licenses/GPL-2'.
 
 License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; Version 3, 29 June 2007.
+ .
+ On Debian systems, the complete text of version 3 of the GNU General
+ Public License can be found in '/usr/share/common-licenses/GPL-3'.
+
+License: GPL-3
  On Debian systems, the complete text of the GNU General
  Public License version 3 can be found in
  `/usr/share/common-licenses/GPL-3'.

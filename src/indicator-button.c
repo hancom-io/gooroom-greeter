@@ -30,7 +30,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include <libindicator/indicator-object.h>
+#include <libayatana-indicator/indicator-object.h>
 
 #include "indicator-button.h"
 
@@ -49,6 +49,7 @@ struct _XfceIndicatorButton
   GtkWidget            *label;
 
   gulong                deactivate_id;
+  guint                 size_alloc_id;
 };
 
 struct _XfceIndicatorButtonClass
@@ -138,6 +139,8 @@ xfce_indicator_button_toggled (GtkToggleButton *widget)
 			gtk_menu_popup_at_widget (button->menu, GTK_WIDGET (widget),
 					GDK_GRAVITY_NORTH_WEST, GDK_GRAVITY_SOUTH_WEST,
 					gtk_get_current_event ());
+
+			gtk_menu_reposition (GTK_MENU (button->menu));
 		}
 	}
 
@@ -161,6 +164,7 @@ xfce_indicator_button_init (XfceIndicatorButton *button)
 	button->icon = NULL;
 	button->label = NULL;
 	button->deactivate_id = 0;
+	button->size_alloc_id = 0;
 
 	gtk_widget_set_halign (GTK_WIDGET (button), GTK_ALIGN_FILL);
 	gtk_widget_set_valign (GTK_WIDGET (button), GTK_ALIGN_FILL);
@@ -234,6 +238,14 @@ xfce_indicator_button_set_image (XfceIndicatorButton *button,
 	gtk_widget_show (button->icon);
 }
 
+static void
+menu_size_allocate_cb (GtkWidget     *widget,
+                       GtkAllocation *allocation,
+                       gpointer       user_data)
+{
+	gtk_menu_reposition (GTK_MENU (widget));
+}
+
 void
 xfce_indicator_button_set_menu (XfceIndicatorButton *button,
                                 GtkMenu             *menu)
@@ -242,6 +254,10 @@ xfce_indicator_button_set_menu (XfceIndicatorButton *button,
 	g_return_if_fail (GTK_IS_MENU (menu));
 
 	if (button->menu != NULL) {
+		if (button->size_alloc_id) {
+			g_signal_handler_disconnect (button->menu, button->size_alloc_id);
+			button->size_alloc_id = 0;
+		}
 		gtk_menu_detach (button->menu);
 		gtk_menu_popdown (button->menu);
 		button->menu = NULL;
@@ -249,6 +265,10 @@ xfce_indicator_button_set_menu (XfceIndicatorButton *button,
 
 	button->menu = menu;
 	gtk_menu_attach_to_widget (menu, GTK_WIDGET (button), NULL);
+
+	button->size_alloc_id = g_signal_connect (G_OBJECT (button->menu),
+                                              "size-allocate",
+                                              G_CALLBACK (menu_size_allocate_cb), button);
 }
 
 IndicatorObjectEntry *

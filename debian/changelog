@@ -1,3 +1,42 @@
+gooroom-greeter (0.2.4+grm2u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [079a89d9] [Bug:1271] 절전모드 해제시 팝업창 노출이슈 해결, nm-applet 위치오류 수정
+  * [b5518a6b] 삭제된 사용자의 인증실패 메세지 처리
+  * [f67312ca] Modify copyright
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 11 Feb 2020 10:05:40 +0900
+
+gooroom-greeter (0.2.3+grm2u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [bebadb47] Added function for Cloud Login
+  * [2e723d63] Update UI for Gooroom Login
+  * [1146d7ce] Update for Gooroom-2.0
+  * [4e116e99] [Bug:1267]Fixed error when changing temporary password
+  * [e9dea3f1] [Bug:1264]Fixed the error which can log in even if user ID is deleted
+  * [016ab534] Update translation en
+  * [2fc3066c] Handles side effects that occur when fixing [Bug:1264]
+  * [c5a850ec] Update translation(ko, en_GB)
+  * [35d222bf] Set allow-cloud-login to false in gooroom-greeter.conf
+
+  [ user ]
+  * [6c5bdb18] Change browser from chromium to gooroom-browser when cloud login
+  * [a2844939] Password expiration handling for GPMS Users
+  * [dceaeaeb] Update source regarding copyright
+  * [e999ef21] Update source to support Hardware Security Module Login
+  * [b4c76554] Added organization expiration feature
+  * [bff582d1] Added organization expiration feature#2
+  * [663deeef] Removed cloud login features
+  * [82607c8f] Removed cloud login features #2
+  * [593dc5ec] Merge from gooroom-2.0-cloud
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Sun, 01 Dec 2019 17:34:04 +0900
+
 gooroom-greeter (0.2.1+grm1u1) unstable; urgency=medium
 
   [ cjheo ]

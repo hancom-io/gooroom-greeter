@@ -10,6 +10,7 @@
  * license.
  */
 
+
 #ifndef GREETER_BACKGROUND_H
 #define GREETER_BACKGROUND_H
 

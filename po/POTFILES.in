@@ -1,2 +1,2 @@
 src/gooroom-greeter.c
-src/gooroom-greeter.glade
+[type: gettext/glade]src/gooroom-greeter.ui
