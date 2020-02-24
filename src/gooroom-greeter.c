@@ -567,8 +567,6 @@ show_cmd_window (const gchar* icon, const gchar* title, const gchar* message, in
     hide_all_windows ();
     gtk_widget_show (cmd_win);
 
-//    gtk_widget_grab_focus (GTK_WIDGET (cmd_win_cancel_button));
-
 	g_timeout_add (50, grab_focus_cb, cmd_win_cancel_button);
 }
 
@@ -615,6 +613,44 @@ wm_start (void)
 {
 	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "/usr/bin/metacity";
+
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	envp = get_envp ();
+
+	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+
+	g_strfreev (argv);
+	g_strfreev (envp);
+}
+
+static void
+gf_start (void)
+{
+	gchar **argv = NULL, **envp = NULL;
+	const gchar *cmd = "/usr/bin/gnome-flashback";
+
+	GSettings *settings = g_settings_new ("org.gnome.gnome-flashback");
+
+	g_settings_set_boolean (settings, "automount-manager", FALSE);
+	g_settings_set_boolean (settings, "idle-monitor", FALSE);
+	g_settings_set_boolean (settings, "polkit", FALSE);
+	g_settings_set_boolean (settings, "shell", FALSE);
+	g_settings_set_boolean (settings, "a11y-keyboard", FALSE);
+	g_settings_set_boolean (settings, "audio-device-selection", FALSE);
+	g_settings_set_boolean (settings, "bluetooth-applet", FALSE);
+	g_settings_set_boolean (settings, "desktop-background", FALSE);
+	g_settings_set_boolean (settings, "end-session-dialog", FALSE);
+	g_settings_set_boolean (settings, "input-settings", FALSE);
+	g_settings_set_boolean (settings, "input-sources", FALSE);
+	g_settings_set_boolean (settings, "notifications", FALSE);
+	g_settings_set_boolean (settings, "power-applet", FALSE);
+	g_settings_set_boolean (settings, "screencast", FALSE);
+	g_settings_set_boolean (settings, "screensaver", FALSE);
+	g_settings_set_boolean (settings, "screenshot", FALSE);
+	g_settings_set_boolean (settings, "sound-applet", FALSE);
+	g_settings_set_boolean (settings, "status-notifier-watcher", FALSE);
+	g_settings_set_boolean (settings, "workarounds", FALSE);
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
@@ -1805,34 +1841,6 @@ authentication_complete_cb (LightDMGreeter *greeter)
 	}
 }
 
-static GdkFilterReturn
-wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
-{
-    XEvent *xevent = (XEvent*)gxevent;
-    if (xevent->type == MapNotify)
-    {
-        GdkDisplay *display = gdk_x11_lookup_xdisplay (xevent->xmap.display);
-        GdkWindow *win = gdk_x11_window_foreign_new_for_display (display, xevent->xmap.window);
-        GdkWindowTypeHint win_type = gdk_window_get_type_hint (win);
-
-        if (win_type != GDK_WINDOW_TYPE_HINT_COMBO &&
-            win_type != GDK_WINDOW_TYPE_HINT_TOOLTIP &&
-            win_type != GDK_WINDOW_TYPE_HINT_NOTIFICATION)
-            gdk_window_focus (win, GDK_CURRENT_TIME);
-    }
-    else if (xevent->type == UnmapNotify)
-    {
-        Window xwin;
-        int revert_to = RevertToNone;
-
-        XGetInputFocus (xevent->xunmap.display, &xwin, &revert_to);
-        if (revert_to == RevertToNone)
-            gdk_window_lower (gtk_widget_get_window (gtk_widget_get_toplevel (GTK_WIDGET (screen_overlay))));
-    }
-
-    return GDK_FILTER_CONTINUE;
-}
-
 int
 main (int argc, char **argv)
 {
@@ -1862,20 +1870,18 @@ main (int argc, char **argv)
 
 	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
 
-	gchar **arr = NULL;
-	const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
-
-	g_shell_parse_argv (cmd, NULL, &arr, NULL);
-
-	g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-
-	g_strfreev (arr);
+//	gchar **arr = NULL;
+//	const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
+//	g_shell_parse_argv (cmd, NULL, &arr, NULL);
+//	g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+//	g_strfreev (arr);
 
 	/* init gtk */
 	gtk_init (&argc, &argv);
 
 	/* Starting window manager */
 	wm_start ();
+	gf_start ();
 
 	greeter = lightdm_greeter_new ();
 	g_signal_connect (greeter, "show-prompt", G_CALLBACK (show_prompt_cb), NULL);
@@ -2046,10 +2052,6 @@ main (int argc, char **argv)
 	/* Background */
 	greeter_background = greeter_background_new (GTK_WIDGET (screen_overlay));
 
-	value = config_get_string (NULL, CONFIG_KEY_ACTIVE_MONITOR, NULL);
-	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
-	g_free (value);
-
 	read_monitor_configuration (CONFIG_GROUP_DEFAULT, GREETER_BACKGROUND_DEFAULT);
 
 	gchar **config_group;
@@ -2115,11 +2117,6 @@ main (int argc, char **argv)
 	network_indicator_application_start ();
 	other_indicator_application_start ();
 	notify_service_start ();
-
-	/* There is no window manager, so we need to implement some of its functionality */
-	GdkWindow* root_window = gdk_get_default_root_window ();
-	gdk_window_set_events (root_window, gdk_window_get_events (root_window) | GDK_SUBSTRUCTURE_MASK);
-	gdk_window_add_filter (root_window, wm_window_filter, NULL);
 
 	changing_password = FALSE;
 

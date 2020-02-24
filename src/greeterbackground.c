@@ -46,10 +46,11 @@ typedef enum
     SCALING_MODE_SOURCE,
     /* Default mode for values without mode prefix */
     SCALING_MODE_ZOOMED,
+    SCALING_MODE_SCALED,
     SCALING_MODE_STRETCHED
 } ScalingMode;
 
-static const gchar* SCALING_MODE_PREFIXES[] = {"#source:", "#zoomed:", "#stretched:", NULL};
+static const gchar* SCALING_MODE_PREFIXES[] = {"#source:", "#zoomed:", "#scaled:", "#stretched:", NULL};
 
 typedef gdouble (*TransitionFunction)(gdouble x);
 typedef void (*TransitionDraw)(gconstpointer monitor, cairo_t* cr);
@@ -1521,6 +1522,37 @@ scale_image(GdkPixbuf* source,
                                            width, height);
         gdk_pixbuf_composite(source, pixbuf, 0, 0, width, height,
                              offset_x, offset_y, scale_x, scale_y, GDK_INTERP_BILINEAR, 0xFF);
+        return pixbuf;
+    }
+    else if(mode == SCALING_MODE_SCALED)
+    {
+        gdouble factor;
+        gint p_width, p_height;
+        gint new_width, new_height;
+        gint offset_x, offset_y;
+
+        p_width = gdk_pixbuf_get_width (source);
+        p_height = gdk_pixbuf_get_height (source);
+
+        factor = MIN (width/(gdouble)p_width, height/(gdouble)p_height);
+
+        offset_x = (width - (p_width * factor)) / 2;
+        offset_y = (height - (p_height * factor)) / 2;
+
+        new_width  = floor (p_width * factor + 0.5);
+        new_height = floor (p_height * factor + 0.5);
+
+        GdkPixbuf *new = gdk_pixbuf_scale_simple(source, new_width, new_height, GDK_INTERP_BILINEAR);
+
+        GdkPixbuf *pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE,
+                                           gdk_pixbuf_get_bits_per_sample (source),
+                                           width, height);
+
+        gdk_pixbuf_composite(new, pixbuf, offset_x, offset_y, new_width, new_height,
+                             offset_x, offset_y, 1.0, 1.0, GDK_INTERP_NEAREST, 0xFF);
+
+        g_object_unref (new);
+
         return pixbuf;
     }
     else if(mode == SCALING_MODE_STRETCHED)
