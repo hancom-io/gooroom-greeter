@@ -19,6 +19,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <string.h>
 #include <X11/Xatom.h>
+#include <glib/gi18n.h>
 
 #include "greeterbackground.h"
 
@@ -140,13 +141,13 @@ static const Monitor INVALID_MONITOR_STRUCT = {0};
 
 struct _GreeterBackground
 {
-	GObject parent_instance;
-	struct _GreeterBackgroundPrivate* priv;
+    GObject parent_instance;
+    struct _GreeterBackgroundPrivate* priv;
 };
 
 struct _GreeterBackgroundClass
 {
-	GObjectClass parent_class;
+    GObjectClass parent_class;
 };
 
 typedef struct _GreeterBackgroundPrivate GreeterBackgroundPrivate;
@@ -167,11 +168,11 @@ struct _GreeterBackgroundPrivate
     /* Default config for unlisted monitors */
     MonitorConfig* default_config;
 
-	/* Array of configured monitors for current screen */
+    /* Array of configured monitors for current screen */
     Monitor* monitors;
     gsize monitors_size;
 
-	/* Name => <Monitor*>, "Number" => <Monitor*> */
+    /* Name => <Monitor*>, "Number" => <Monitor*> */
     GHashTable* monitors_map;
 
     GList* active_monitors_config;
@@ -340,7 +341,7 @@ static const MonitorConfig DEFAULT_MONITOR_CONFIG =
 static void
 greeter_background_class_init(GreeterBackgroundClass* klass)
 {
-	GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
+    GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
 
     background_signals[BACKGROUND_SIGNAL_ACTIVE_MONITOR_CHANGED] =
                             g_signal_new("active-monitor-changed",
@@ -387,7 +388,8 @@ greeter_background_new(GtkWidget* child)
     GreeterBackground* background = GREETER_BACKGROUND(g_object_new(greeter_background_get_type(), NULL));
     background->priv->child = child;
     g_signal_connect(background->priv->child, "destroy", G_CALLBACK(greeter_background_child_destroyed_cb), background);
-	return background;
+
+    return background;
 }
 
 void
@@ -629,7 +631,7 @@ greeter_background_connect(GreeterBackground* background,
             monitor_set_background(monitor, background);
             background_unref(&background);
         }
-		else
+        else
             monitor_set_background(monitor, monitor->background_configured);
 
         if(monitor->name)
@@ -1023,20 +1025,45 @@ greeter_background_save_xroot(GreeterBackground* background)
     cairo_t* cr = cairo_create(surface);
     gsize i;
 
-    const GdkRGBA ROOT_COLOR = {1.0, 1.0, 1.0, 1.0};
+    const GdkRGBA ROOT_COLOR = {0.16, 0.16, 0.16, 1.0};
     gdk_cairo_set_source_rgba(cr, &ROOT_COLOR);
     cairo_paint(cr);
 
     for(i = 0; i < priv->monitors_size; ++i)
     {
+        gint w = 120;
+        gint p_width, p_height;
+        GdkPixbuf *pixbuf;
         const Monitor* monitor = &priv->monitors[i];
-        if(!monitor->background)
-            continue;
+
+        if (monitor->geometry.width > 1280)
+        {
+          w = (monitor->geometry.width*120)/1280;
+        }
+
+        pixbuf = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/logo-image.svg", w, -1, TRUE, NULL);
+        p_width = gdk_pixbuf_get_width (pixbuf);
+        p_height = gdk_pixbuf_get_height (pixbuf);
+
         cairo_save(cr);
+
         cairo_translate(cr, monitor->geometry.x, monitor->geometry.y);
-        monitor_draw_background(monitor, monitor->background, cr);
+        gdk_cairo_set_source_pixbuf(cr, pixbuf, (monitor->geometry.width - p_width)/2, (monitor->geometry.height - p_height)/2);
+        cairo_paint(cr);
+
+        cairo_set_font_size (cr, 30);
+        cairo_text_extents_t ext;
+        cairo_text_extents (cr, _("Starting Gooroom"), &ext);
+
+        cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+        cairo_move_to (cr, (monitor->geometry.width-ext.width)/2, (monitor->geometry.height*9)/10);
+        cairo_show_text (cr, _("Starting Gooroom"));
+
         cairo_restore(cr);
+
+        g_object_unref (pixbuf);
     }
+
     set_surface_as_root(priv->screen, surface);
 
     cairo_destroy(cr);

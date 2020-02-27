@@ -45,7 +45,6 @@
 #include <grp.h>
 #include <sys/types.h>
 
-
 #include <libayatana-ido/libayatana-ido.h>
 #include <libayatana-indicator/indicator-ng.h>
 #include <libayatana-indicator/indicator-object.h>
@@ -1420,7 +1419,7 @@ start_session (void)
 	/* Remember last choice */
 	config_set_string (STATE_SECTION_GREETER, STATE_KEY_LAST_SESSION, session);
 
-	//    greeter_background_save_xroot (greeter_background);
+	greeter_background_save_xroot (greeter_background);
 
 	if (!lightdm_greeter_start_session_sync (greeter, session, NULL))
 	{
@@ -1858,29 +1857,25 @@ main (int argc, char **argv)
 	/* LP: #1366534 */
 	g_setenv ("NO_AT_BRIDGE", "1", TRUE);
 
+	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
+
+	g_unix_signal_add (SIGTERM, (GSourceFunc)sigterm_cb, /* is_callback */ GINT_TO_POINTER (TRUE));
+
 	/* Initialize i18n */
 	setlocale (LC_ALL, "");
 	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 
-	g_unix_signal_add (SIGTERM, (GSourceFunc)sigterm_cb, /* is_callback */ GINT_TO_POINTER (TRUE));
-
-	config_init ();
-
-	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
-
-//	gchar **arr = NULL;
-//	const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
-//	g_shell_parse_argv (cmd, NULL, &arr, NULL);
-//	g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-//	g_strfreev (arr);
-
 	/* init gtk */
 	gtk_init (&argc, &argv);
 
+	config_init ();
+
 	/* Starting window manager */
 	wm_start ();
+
+	/* Starting gnome-flashback */
 	gf_start ();
 
 	greeter = lightdm_greeter_new ();
