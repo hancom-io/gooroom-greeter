@@ -189,24 +189,6 @@ gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *
 static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
 
-static gchar **
-get_envp (void)
-{
-	gchar **envp = NULL;
-
-	if (!default_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-
-	if (!default_icon_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-
-	envp = g_get_environ ();
-	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
-	envp = g_environ_setenv (envp, "ICON_THEME", default_icon_theme_name, TRUE);
-
-	return envp;
-}
-
 /* Clock */
 static gboolean
 clock_timeout_thread (gpointer data)
@@ -608,6 +590,20 @@ on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 }
 
 static void
+dbus_update_activation_environment (void)
+{
+	gchar **argv = NULL;
+	const gchar *cmd = "/usr/bin/dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY";
+//	const gchar *cmd = "/usr/bin/dbus-update-activation-environment --systemd -all";
+
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+
+	g_strfreev (argv);
+}
+
+static void
 wm_start (void)
 {
 	gchar **argv = NULL, **envp = NULL;
@@ -615,7 +611,7 @@ wm_start (void)
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -653,7 +649,7 @@ gf_start (void)
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -671,7 +667,7 @@ notify_service_start (void)
 
 	g_shell_parse_argv (GOOROOM_NOTIFYD, NULL, &argv, NULL);
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -682,12 +678,14 @@ notify_service_start (void)
 static void
 indicator_application_service_start (void)
 {
-	gchar **argv = NULL;
+	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "systemctl --user start ayatana-indicator-application";
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+	envp = g_get_environ ();
+
+	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
 	g_strfreev (argv);
 }
@@ -710,9 +708,7 @@ network_indicator_application_start (void)
 	cmd = "nm-applet --indicator";
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	envp = get_envp ();
-	/* Make nm-applet hide items the user does not have permissions to interact with */
-	envp = g_environ_setenv (envp, "NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -729,7 +725,7 @@ other_indicator_application_start (void)
 	if (!app_indicators)
 		return;
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	guint i;
 	for (i = 0; app_indicators[i] != NULL; i++) {
@@ -1085,6 +1081,9 @@ process_prompts (LightDMGreeter *greeter)
 		const gchar *filter_msg_110 = "Duplicate Login";
 		const gchar *filter_msg_120 = "Division Expiration";
 		const gchar *filter_msg_130 = "Login Trial Exceed";
+		const gchar *filter_msg_140 = "Trial Period Expired";
+		const gchar *filter_msg_150 = "DateTime Error";
+		const gchar *filter_msg_160 = "Trial Period Warning";
 
 		if ((strstr (message->text, filter_msg_000) != NULL) ||
 		    (strstr (message->text, filter_msg_010) != NULL) ||
@@ -1266,6 +1265,38 @@ process_prompts (LightDMGreeter *greeter)
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_140)) {
+			gchar *msg = g_strdup_printf (_("Trial period has expired."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_150)) {
+			gchar *msg = g_strdup_printf (_("Time error occurred."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_160)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 2) {
+				if (g_str_equal (tokens[2], "0")) {
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "The trial period expires today."), tokens[1]);
+				} else if (g_str_equal (tokens[2], "1")){
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "%s day left to expire."), tokens[1], tokens[2]);
+				} else {
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "%s days left to expire."), tokens[1], tokens[2]);
+				}
+			} else {
+				msg = g_strdup (_("The trial period is unknown."));
+			}
+			g_strfreev (tokens);
+
+			show_msg_window (_("Trial Period Notification"), msg, _("Ok"), "TRIAL_LOGIN_OK");
+			g_free (msg);
+			continue;
 		}
 
         if (!message->is_prompt)
@@ -1701,6 +1732,8 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 		response = "pass_exp_ok";
     } else if (g_str_equal (data, "DUPLICATE_LOGIN_OK")) {
 		response = "duplicate_login_ok";
+    } else if (g_str_equal (data, "TRIAL_LOGIN_OK")) {
+		response = "trial_login_ok";
     } else {
 		response = NULL;
 	}
@@ -1840,24 +1873,96 @@ authentication_complete_cb (LightDMGreeter *greeter)
 	}
 }
 
+static void
+apply_config (void)
+{
+	GError *error = NULL;
+	GKeyFile *keyfile = NULL;
+	gchar *gtk_settings_ini = NULL;
+
+	gtk_settings_ini = g_build_filename (g_get_user_config_dir (), "gtk-3.0", "settings.ini", NULL);
+
+	keyfile = g_key_file_new ();
+
+	g_key_file_load_from_file (keyfile, gtk_settings_ini, G_KEY_FILE_KEEP_COMMENTS, &error);
+
+	if (error == NULL)
+	{
+		if (g_key_file_has_group (keyfile, "Settings")) {
+			gchar *value;
+
+			/* Set GTK+ settings */
+			value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
+			if (value)
+			{
+				g_key_file_set_string (keyfile, "Settings", "gtk-theme-name", value);
+				g_free (value);
+			}
+
+			value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
+			if (value)
+			{
+				g_key_file_set_string (keyfile, "Settings", "gtk-icon-theme-name", value);
+				g_free (value);
+			}
+
+			value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
+			if (value)
+			{
+				g_key_file_set_string (keyfile, "Settings", "gtk-font-name", value);
+				g_free (value);
+			}
+
+			if (config_has_key (NULL, CONFIG_KEY_DPI))
+			{
+				gint dpi = 1024 * config_get_int (NULL, CONFIG_KEY_DPI, 96);
+				g_key_file_set_integer (keyfile, "Settings", "gtk-xft-dpi", dpi);
+			}
+
+			if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
+			{
+				gboolean antialias = config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE);
+				g_key_file_set_boolean (keyfile, "Settings", "gtk-xft-antialias", antialias);
+			}
+
+			value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
+			if (value)
+			{
+				g_key_file_set_string (keyfile, "Settings", "gtk-xft-hintstyle", value);
+				g_free (value);
+			}
+
+			value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
+			if (value)
+			{
+				g_key_file_set_string (keyfile, "Settings", "gtk-xft-rgba", value);
+				g_free (value);
+			}
+		}
+		g_key_file_save_to_file (keyfile, gtk_settings_ini, NULL);
+	} else {
+		g_error_free (error);
+	}
+
+	g_free (gtk_settings_ini);
+	g_key_file_free (keyfile);
+}
+
 int
 main (int argc, char **argv)
 {
 	GtkBuilder *builder;
 	const GList *items, *item;
-	gchar *value;
 	int ret = EXIT_SUCCESS;
-
-	/* Prevent memory from being swapped out, as we are dealing with passwords */
-	mlockall (MCL_CURRENT | MCL_FUTURE);
 
 	/* LP: #1024482 */
 	g_setenv ("GDK_CORE_DEVICE_EVENTS", "1", TRUE);
-
-	/* LP: #1366534 */
-	g_setenv ("NO_AT_BRIDGE", "1", TRUE);
-
 	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
+
+	/* Make nm-applet hide items the user does not have permissions to interact with */
+	g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
+
+	dbus_update_activation_environment ();
 
 	g_unix_signal_add (SIGTERM, (GSourceFunc)sigterm_cb, /* is_callback */ GINT_TO_POINTER (TRUE));
 
@@ -1871,6 +1976,7 @@ main (int argc, char **argv)
 	gtk_init (&argc, &argv);
 
 	config_init ();
+	apply_config ();
 
 	/* Starting window manager */
 	wm_start ();
@@ -1901,57 +2007,6 @@ main (int argc, char **argv)
 		XForceScreenSaver (display, ScreenSaverActive);
 		XSetScreenSaver (display, config_get_int (NULL, CONFIG_KEY_SCREENSAVER_TIMEOUT, 60), 0,
                          ScreenSaverActive, DefaultExposures);
-	}
-
-	/* Set GTK+ settings */
-	value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
-	if (value)
-	{
-		g_debug ("[Configuration] Changing GTK+ theme to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-theme-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-	g_debug ("[Configuration] GTK+ theme: '%s'", default_theme_name);
-
-	value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
-	if (value)
-	{
-		g_debug ("[Configuration] Changing icons theme to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-icon-theme-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-	g_debug ("[Configuration] Icons theme: '%s'", default_icon_theme_name);
-
-	value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
-	if (value)
-	{
-		g_debug ("[Configuration] Changing font to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-font-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-font-name", &default_font_name, NULL);
-	g_debug ("[Configuration] Font: '%s'", default_font_name);
-
-	if (config_has_key (NULL, CONFIG_KEY_DPI))
-		g_object_set (gtk_settings_get_default (), "gtk-xft-dpi", 1024*config_get_int (NULL, CONFIG_KEY_DPI, 96), NULL);
-
-	if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
-		g_object_set (gtk_settings_get_default (), "gtk-xft-antialias", config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE), NULL);
-
-	value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
-	if (value)
-	{
-		g_object_set (gtk_settings_get_default (), "gtk-xft-hintstyle", value, NULL);
-		g_free (value);
-	}
-
-	value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
-	if (value)
-	{
-		g_object_set (gtk_settings_get_default (), "gtk-xft-rgba", value, NULL);
-		g_free (value);
 	}
 
 	builder = gtk_builder_new_from_resource ("/kr/gooroom/greeter/gooroom-greeter.ui");

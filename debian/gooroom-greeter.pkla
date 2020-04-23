@@ -32,7 +32,7 @@ ResultAny=no
 [Disable User Connections]
 Identity=unix-user:lightdm
 Action=org.freedesktop.NetworkManager.use-user-connections
-ResultActive=yes
+ResultActive=no
 ResultInactive=no
 ResultAny=no
 

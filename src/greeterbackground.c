@@ -1031,37 +1031,36 @@ greeter_background_save_xroot(GreeterBackground* background)
 
     for(i = 0; i < priv->monitors_size; ++i)
     {
-        gint w = 120;
-        gint p_width, p_height;
-        GdkPixbuf *pixbuf;
-        const Monitor* monitor = &priv->monitors[i];
+		gint w = 120;
+		gint image_logo_w, image_logo_h, letter_logo_w, letter_logo_h;
+		GdkPixbuf *image_logo, *letter_logo;
+		const Monitor* monitor = &priv->monitors[i];
 
-        if (monitor->geometry.width > 1280)
-        {
-          w = (monitor->geometry.width*120)/1280;
-        }
+		if (monitor->geometry.width > 1920)
+		{
+			w = (monitor->geometry.width*120)/1920;
+		}
 
-        pixbuf = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/logo-image.svg", w, -1, TRUE, NULL);
-        p_width = gdk_pixbuf_get_width (pixbuf);
-        p_height = gdk_pixbuf_get_height (pixbuf);
+		image_logo = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/image-logo.svg", w, -1, TRUE, NULL);
+		letter_logo = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/letter-logo.png", w, -1, TRUE, NULL);
+		image_logo_w = gdk_pixbuf_get_width (image_logo);
+		image_logo_h = gdk_pixbuf_get_height (image_logo);
+		letter_logo_w = gdk_pixbuf_get_width (letter_logo);
+		letter_logo_h = gdk_pixbuf_get_height (letter_logo);
 
-        cairo_save(cr);
+		cairo_save(cr);
 
-        cairo_translate(cr, monitor->geometry.x, monitor->geometry.y);
-        gdk_cairo_set_source_pixbuf(cr, pixbuf, (monitor->geometry.width - p_width)/2, (monitor->geometry.height - p_height)/2);
-        cairo_paint(cr);
+		cairo_translate(cr, monitor->geometry.x, monitor->geometry.y);
+		gdk_cairo_set_source_pixbuf(cr, image_logo, (monitor->geometry.width - image_logo_w)/2, monitor->geometry.height/2 - image_logo_h);
+		cairo_paint(cr);
 
-        cairo_set_font_size (cr, 30);
-        cairo_text_extents_t ext;
-        cairo_text_extents (cr, _("Starting Gooroom"), &ext);
+		gdk_cairo_set_source_pixbuf(cr, letter_logo, (monitor->geometry.width - letter_logo_w)/2, monitor->geometry.height - letter_logo_h*5);
+		cairo_paint(cr);
 
-        cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
-        cairo_move_to (cr, (monitor->geometry.width-ext.width)/2, (monitor->geometry.height*9)/10);
-        cairo_show_text (cr, _("Starting Gooroom"));
+		cairo_restore(cr);
 
-        cairo_restore(cr);
-
-        g_object_unref (pixbuf);
+		g_object_unref (image_logo);
+		g_object_unref (letter_logo);
     }
 
     set_surface_as_root(priv->screen, surface);
