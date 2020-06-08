@@ -1032,7 +1032,7 @@ greeter_background_save_xroot(GreeterBackground* background)
     for(i = 0; i < priv->monitors_size; ++i)
     {
 		gint w = 120;
-		gint image_logo_w, image_logo_h, letter_logo_w, letter_logo_h;
+		gint image_logo_w, image_logo_h, letter_logo_w;
 		GdkPixbuf *image_logo, *letter_logo;
 		const Monitor* monitor = &priv->monitors[i];
 
@@ -1046,7 +1046,6 @@ greeter_background_save_xroot(GreeterBackground* background)
 		image_logo_w = gdk_pixbuf_get_width (image_logo);
 		image_logo_h = gdk_pixbuf_get_height (image_logo);
 		letter_logo_w = gdk_pixbuf_get_width (letter_logo);
-		letter_logo_h = gdk_pixbuf_get_height (letter_logo);
 
 		cairo_save(cr);
 
@@ -1054,7 +1053,7 @@ greeter_background_save_xroot(GreeterBackground* background)
 		gdk_cairo_set_source_pixbuf(cr, image_logo, (monitor->geometry.width - image_logo_w)/2, monitor->geometry.height/2 - image_logo_h);
 		cairo_paint(cr);
 
-		gdk_cairo_set_source_pixbuf(cr, letter_logo, (monitor->geometry.width - letter_logo_w)/2, monitor->geometry.height - letter_logo_h*5);
+		gdk_cairo_set_source_pixbuf(cr, letter_logo, (monitor->geometry.width - letter_logo_w)/2, monitor->geometry.height * 0.9);
 		cairo_paint(cr);
 
 		cairo_restore(cr);
