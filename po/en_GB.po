@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-23 14:22+0900\n"
+"POT-Creation-Date: 2020-06-08 11:29+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -427,8 +427,8 @@ msgstr ""
 "Please try again."
 
 #: ../src/gooroom-greeter.ui.h:2
-msgid "<span font='18px'><b>Login Gooroom</b></span>"
-msgstr "<span font='18px'><b>Login Gooroom</b></span>"
+msgid "<span font='18px'><b>Login Hancom Gooroom</b></span>"
+msgstr "<span font='18px'><b>Login Hancom Gooroom</b></span>"
 
 #: ../src/gooroom-greeter.ui.h:3
 msgid "Enter your username"

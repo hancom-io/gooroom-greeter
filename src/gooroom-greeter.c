@@ -2097,7 +2097,7 @@ main (int argc, char **argv)
 		gtk_entry_set_icon_from_pixbuf (GTK_ENTRY (login_win_pw_entry), GTK_ENTRY_ICON_PRIMARY, pixbuf);
 		g_object_unref (pixbuf);
 	}
-	pixbuf = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/logo-letter-white.svg", -1, 15, TRUE, NULL);
+	pixbuf = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/logo-letter-white.svg", -1, 35, TRUE, NULL);
 	if (pixbuf) {
 		gtk_image_set_from_pixbuf (GTK_IMAGE (login_win_logo_image), pixbuf);
 		g_object_unref (pixbuf);
