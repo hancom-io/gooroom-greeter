@@ -1450,7 +1450,7 @@ start_session (void)
 	/* Remember last choice */
 	config_set_string (STATE_SECTION_GREETER, STATE_KEY_LAST_SESSION, session);
 
-	greeter_background_save_xroot (greeter_background);
+//	greeter_background_save_xroot (greeter_background);
 
 	if (!lightdm_greeter_start_session_sync (greeter, session, NULL))
 	{
@@ -1874,76 +1874,81 @@ authentication_complete_cb (LightDMGreeter *greeter)
 }
 
 static void
-apply_config (void)
+apply_gtk_config (void)
 {
 	GError *error = NULL;
 	GKeyFile *keyfile = NULL;
 	gchar *gtk_settings_ini = NULL;
+	gchar *gtk_settings_dir = NULL;
 
-	gtk_settings_ini = g_build_filename (g_get_user_config_dir (), "gtk-3.0", "settings.ini", NULL);
+	gtk_settings_dir = g_build_filename (g_get_user_config_dir (), "gtk-3.0", NULL);
+	if (g_mkdir_with_parents (gtk_settings_dir, 0775) < 0) {
+		g_warning ("Failed to create directory %s", gtk_settings_dir);
+		g_free (gtk_settings_dir);
+		return;
+	}
+
+	gtk_settings_ini = g_build_filename (gtk_settings_dir, "settings.ini", NULL);
 
 	keyfile = g_key_file_new ();
 
-	g_key_file_load_from_file (keyfile, gtk_settings_ini, G_KEY_FILE_KEEP_COMMENTS, &error);
-
 	if (error == NULL)
 	{
-		if (g_key_file_has_group (keyfile, "Settings")) {
-			gchar *value;
+		gchar *value;
 
-			/* Set GTK+ settings */
-			value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
-			if (value)
-			{
-				g_key_file_set_string (keyfile, "Settings", "gtk-theme-name", value);
-				g_free (value);
-			}
+		/* Set GTK+ settings */
+		value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-theme-name", value);
+			g_free (value);
+		}
 
-			value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
-			if (value)
-			{
-				g_key_file_set_string (keyfile, "Settings", "gtk-icon-theme-name", value);
-				g_free (value);
-			}
+		value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-icon-theme-name", value);
+			g_free (value);
+		}
 
-			value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
-			if (value)
-			{
-				g_key_file_set_string (keyfile, "Settings", "gtk-font-name", value);
-				g_free (value);
-			}
+		value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-font-name", value);
+			g_free (value);
+		}
 
-			if (config_has_key (NULL, CONFIG_KEY_DPI))
-			{
-				gint dpi = 1024 * config_get_int (NULL, CONFIG_KEY_DPI, 96);
-				g_key_file_set_integer (keyfile, "Settings", "gtk-xft-dpi", dpi);
-			}
+		if (config_has_key (NULL, CONFIG_KEY_DPI))
+		{
+			gint dpi = 1024 * config_get_int (NULL, CONFIG_KEY_DPI, 96);
+			g_key_file_set_integer (keyfile, "Settings", "gtk-xft-dpi", dpi);
+		}
 
-			if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
-			{
-				gboolean antialias = config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE);
-				g_key_file_set_boolean (keyfile, "Settings", "gtk-xft-antialias", antialias);
-			}
+		if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
+		{
+			gboolean antialias = config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE);
+			g_key_file_set_boolean (keyfile, "Settings", "gtk-xft-antialias", antialias);
+		}
 
-			value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
-			if (value)
-			{
-				g_key_file_set_string (keyfile, "Settings", "gtk-xft-hintstyle", value);
-				g_free (value);
-			}
+		value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-xft-hintstyle", value);
+			g_free (value);
+		}
 
-			value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
-			if (value)
-			{
-				g_key_file_set_string (keyfile, "Settings", "gtk-xft-rgba", value);
-				g_free (value);
-			}
+		value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-xft-rgba", value);
+			g_free (value);
 		}
 		g_key_file_save_to_file (keyfile, gtk_settings_ini, NULL);
 	} else {
 		g_error_free (error);
 	}
 
+	g_free (gtk_settings_dir);
 	g_free (gtk_settings_ini);
 	g_key_file_free (keyfile);
 }
@@ -1976,7 +1981,7 @@ main (int argc, char **argv)
 	gtk_init (&argc, &argv);
 
 	config_init ();
-	apply_config ();
+	apply_gtk_config ();
 
 	/* Starting window manager */
 	wm_start ();
