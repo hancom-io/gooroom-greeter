@@ -609,6 +609,10 @@ wm_start (void)
 	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "/usr/bin/metacity";
 
+	GSettings *settings = g_settings_new ("org.gnome.desktop.wm.preferences");
+	g_settings_set_enum (settings, "action-right-click-titlebar", 5);
+	g_object_unref (settings);
+
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
 	envp = g_get_environ ();
@@ -626,7 +630,6 @@ gf_start (void)
 	const gchar *cmd = "/usr/bin/gnome-flashback";
 
 	GSettings *settings = g_settings_new ("org.gnome.gnome-flashback");
-
 	g_settings_set_boolean (settings, "automount-manager", FALSE);
 	g_settings_set_boolean (settings, "idle-monitor", FALSE);
 	g_settings_set_boolean (settings, "polkit", FALSE);
@@ -646,6 +649,7 @@ gf_start (void)
 	g_settings_set_boolean (settings, "sound-applet", FALSE);
 	g_settings_set_boolean (settings, "status-notifier-watcher", FALSE);
 	g_settings_set_boolean (settings, "workarounds", FALSE);
+	g_object_unref (settings);
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
