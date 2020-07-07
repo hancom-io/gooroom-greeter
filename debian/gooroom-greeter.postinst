@@ -2,11 +2,6 @@
 
 set -e
 
-if [ "$1" = "configure" ]; then
-  update-alternatives --install /usr/share/xgreeters/lightdm-greeter.desktop \
-  lightdm-greeter /usr/share/xgreeters/gooroom-greeter.desktop 60
-fi
-
 # Login manager requires netdev permission to enable WiFi.
 usermod -G netdev lightdm
 

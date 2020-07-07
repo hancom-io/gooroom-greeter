@@ -1,3 +1,21 @@
+gooroom-greeter (0.2.5+grm2u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [22e5d7ba] 백그라운드 이미지의 Scaled 옵션추가 및 화면 해상도 변경 처리를 위한 gnome-flashback 실행루틴 추가
+  * [cc4e2d27] 바탕화면 그리기 옵션 변경(scaled 에서 zoomed 으로)
+  * [5f254e3c] 사용자 인증 이후 로딩화면 추가
+  * [93c626d6] 1.네트워크매니저 애플릿에서 '연결편집' 실행시 지연되는 이슈처리
+               2.스플래쉬 처리 변경 
+               3.평가판 관련하여 PAM 메세지 처리 
+               4.GTK 테마가 적용되지 않는 이슈 처리
+  * [d8c0065e] 1.gtk 설정오류 수정 2.로그인 후 스플래쉬 보이기 제거
+  * [76c73858] [Bug: 2377] 윈도우 타이틀바의 context 메뉴 비활성화
+  * [27d28bf4] Modify copyright
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 07 Jul 2020 16:57:35 +0900
+
 gooroom-greeter (0.2.4+grm2u1) unstable; urgency=medium
 
   [ cjheo ]

@@ -45,7 +45,6 @@
 #include <grp.h>
 #include <sys/types.h>
 
-
 #include <libayatana-ido/libayatana-ido.h>
 #include <libayatana-indicator/indicator-ng.h>
 #include <libayatana-indicator/indicator-object.h>
@@ -189,24 +188,6 @@ gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *
 
 static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
-
-static gchar **
-get_envp (void)
-{
-	gchar **envp = NULL;
-
-	if (!default_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-
-	if (!default_icon_theme_name)
-		g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-
-	envp = g_get_environ ();
-	envp = g_environ_setenv (envp, "GTK_THEME", default_theme_name, TRUE);
-	envp = g_environ_setenv (envp, "ICON_THEME", default_icon_theme_name, TRUE);
-
-	return envp;
-}
 
 /* Clock */
 static gboolean
@@ -567,8 +548,6 @@ show_cmd_window (const gchar* icon, const gchar* title, const gchar* message, in
     hide_all_windows ();
     gtk_widget_show (cmd_win);
 
-//    gtk_widget_grab_focus (GTK_WIDGET (cmd_win_cancel_button));
-
 	g_timeout_add (50, grab_focus_cb, cmd_win_cancel_button);
 }
 
@@ -611,14 +590,70 @@ on_command_button_clicked_cb (GtkButton *button, gpointer user_data)
 }
 
 static void
+dbus_update_activation_environment (void)
+{
+	gchar **argv = NULL;
+	const gchar *cmd = "/usr/bin/dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY";
+//	const gchar *cmd = "/usr/bin/dbus-update-activation-environment --systemd -all";
+
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+
+	g_strfreev (argv);
+}
+
+static void
 wm_start (void)
 {
 	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "/usr/bin/metacity";
 
+	GSettings *settings = g_settings_new ("org.gnome.desktop.wm.preferences");
+	g_settings_set_enum (settings, "action-right-click-titlebar", 5);
+	g_object_unref (settings);
+
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	envp = get_envp ();
+	envp = g_get_environ ();
+
+	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+
+	g_strfreev (argv);
+	g_strfreev (envp);
+}
+
+static void
+gf_start (void)
+{
+	gchar **argv = NULL, **envp = NULL;
+	const gchar *cmd = "/usr/bin/gnome-flashback";
+
+	GSettings *settings = g_settings_new ("org.gnome.gnome-flashback");
+	g_settings_set_boolean (settings, "automount-manager", FALSE);
+	g_settings_set_boolean (settings, "idle-monitor", FALSE);
+	g_settings_set_boolean (settings, "polkit", FALSE);
+	g_settings_set_boolean (settings, "shell", FALSE);
+	g_settings_set_boolean (settings, "a11y-keyboard", FALSE);
+	g_settings_set_boolean (settings, "audio-device-selection", FALSE);
+	g_settings_set_boolean (settings, "bluetooth-applet", FALSE);
+	g_settings_set_boolean (settings, "desktop-background", FALSE);
+	g_settings_set_boolean (settings, "end-session-dialog", FALSE);
+	g_settings_set_boolean (settings, "input-settings", FALSE);
+	g_settings_set_boolean (settings, "input-sources", FALSE);
+	g_settings_set_boolean (settings, "notifications", FALSE);
+	g_settings_set_boolean (settings, "power-applet", FALSE);
+	g_settings_set_boolean (settings, "screencast", FALSE);
+	g_settings_set_boolean (settings, "screensaver", FALSE);
+	g_settings_set_boolean (settings, "screenshot", FALSE);
+	g_settings_set_boolean (settings, "sound-applet", FALSE);
+	g_settings_set_boolean (settings, "status-notifier-watcher", FALSE);
+	g_settings_set_boolean (settings, "workarounds", FALSE);
+	g_object_unref (settings);
+
+	g_shell_parse_argv (cmd, NULL, &argv, NULL);
+
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -636,7 +671,7 @@ notify_service_start (void)
 
 	g_shell_parse_argv (GOOROOM_NOTIFYD, NULL, &argv, NULL);
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -647,12 +682,14 @@ notify_service_start (void)
 static void
 indicator_application_service_start (void)
 {
-	gchar **argv = NULL;
+	gchar **argv = NULL, **envp = NULL;
 	const gchar *cmd = "systemctl --user start ayatana-indicator-application";
 
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	g_spawn_async (NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+	envp = g_get_environ ();
+
+	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
 	g_strfreev (argv);
 }
@@ -675,9 +712,7 @@ network_indicator_application_start (void)
 	cmd = "nm-applet --indicator";
 	g_shell_parse_argv (cmd, NULL, &argv, NULL);
 
-	envp = get_envp ();
-	/* Make nm-applet hide items the user does not have permissions to interact with */
-	envp = g_environ_setenv (envp, "NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
+	envp = g_get_environ ();
 
 	g_spawn_async (NULL, argv, envp, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 
@@ -694,7 +729,7 @@ other_indicator_application_start (void)
 	if (!app_indicators)
 		return;
 
-	envp = get_envp ();
+	envp = g_get_environ ();
 
 	guint i;
 	for (i = 0; app_indicators[i] != NULL; i++) {
@@ -1050,6 +1085,9 @@ process_prompts (LightDMGreeter *greeter)
 		const gchar *filter_msg_110 = "Duplicate Login";
 		const gchar *filter_msg_120 = "Division Expiration";
 		const gchar *filter_msg_130 = "Login Trial Exceed";
+		const gchar *filter_msg_140 = "Trial Period Expired";
+		const gchar *filter_msg_150 = "DateTime Error";
+		const gchar *filter_msg_160 = "Trial Period Warning";
 
 		if ((strstr (message->text, filter_msg_000) != NULL) ||
 		    (strstr (message->text, filter_msg_010) != NULL) ||
@@ -1231,6 +1269,38 @@ process_prompts (LightDMGreeter *greeter)
 			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
 			g_free (msg);
 			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_140)) {
+			gchar *msg = g_strdup_printf (_("Trial period has expired."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_150)) {
+			gchar *msg = g_strdup_printf (_("Time error occurred."));
+			display_warning_message (LIGHTDM_MESSAGE_TYPE_ERROR, msg);
+			g_free (msg);
+			break;
+		} else if (g_str_has_prefix (message->text, filter_msg_160)) {
+			gchar *msg = NULL;
+			gchar **tokens = g_strsplit (message->text, ":", -1);
+			if (g_strv_length (tokens) > 2) {
+				if (g_str_equal (tokens[2], "0")) {
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "The trial period expires today."), tokens[1]);
+				} else if (g_str_equal (tokens[2], "1")){
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "%s day left to expire."), tokens[1], tokens[2]);
+				} else {
+					msg = g_strdup_printf (_("The trial period is up to %s days.\n"
+                                             "%s days left to expire."), tokens[1], tokens[2]);
+				}
+			} else {
+				msg = g_strdup (_("The trial period is unknown."));
+			}
+			g_strfreev (tokens);
+
+			show_msg_window (_("Trial Period Notification"), msg, _("Ok"), "TRIAL_LOGIN_OK");
+			g_free (msg);
+			continue;
 		}
 
         if (!message->is_prompt)
@@ -1384,7 +1454,7 @@ start_session (void)
 	/* Remember last choice */
 	config_set_string (STATE_SECTION_GREETER, STATE_KEY_LAST_SESSION, session);
 
-	//    greeter_background_save_xroot (greeter_background);
+//	greeter_background_save_xroot (greeter_background);
 
 	if (!lightdm_greeter_start_session_sync (greeter, session, NULL))
 	{
@@ -1666,6 +1736,8 @@ msg_win_button_clicked_cb (GtkButton *button, gpointer user_data)
 		response = "pass_exp_ok";
     } else if (g_str_equal (data, "DUPLICATE_LOGIN_OK")) {
 		response = "duplicate_login_ok";
+    } else if (g_str_equal (data, "TRIAL_LOGIN_OK")) {
+		response = "trial_login_ok";
     } else {
 		response = NULL;
 	}
@@ -1805,32 +1877,84 @@ authentication_complete_cb (LightDMGreeter *greeter)
 	}
 }
 
-static GdkFilterReturn
-wm_window_filter (GdkXEvent *gxevent, GdkEvent *event, gpointer  data)
+static void
+apply_gtk_config (void)
 {
-    XEvent *xevent = (XEvent*)gxevent;
-    if (xevent->type == MapNotify)
-    {
-        GdkDisplay *display = gdk_x11_lookup_xdisplay (xevent->xmap.display);
-        GdkWindow *win = gdk_x11_window_foreign_new_for_display (display, xevent->xmap.window);
-        GdkWindowTypeHint win_type = gdk_window_get_type_hint (win);
+	GError *error = NULL;
+	GKeyFile *keyfile = NULL;
+	gchar *gtk_settings_ini = NULL;
+	gchar *gtk_settings_dir = NULL;
 
-        if (win_type != GDK_WINDOW_TYPE_HINT_COMBO &&
-            win_type != GDK_WINDOW_TYPE_HINT_TOOLTIP &&
-            win_type != GDK_WINDOW_TYPE_HINT_NOTIFICATION)
-            gdk_window_focus (win, GDK_CURRENT_TIME);
-    }
-    else if (xevent->type == UnmapNotify)
-    {
-        Window xwin;
-        int revert_to = RevertToNone;
+	gtk_settings_dir = g_build_filename (g_get_user_config_dir (), "gtk-3.0", NULL);
+	if (g_mkdir_with_parents (gtk_settings_dir, 0775) < 0) {
+		g_warning ("Failed to create directory %s", gtk_settings_dir);
+		g_free (gtk_settings_dir);
+		return;
+	}
 
-        XGetInputFocus (xevent->xunmap.display, &xwin, &revert_to);
-        if (revert_to == RevertToNone)
-            gdk_window_lower (gtk_widget_get_window (gtk_widget_get_toplevel (GTK_WIDGET (screen_overlay))));
-    }
+	gtk_settings_ini = g_build_filename (gtk_settings_dir, "settings.ini", NULL);
 
-    return GDK_FILTER_CONTINUE;
+	keyfile = g_key_file_new ();
+
+	if (error == NULL)
+	{
+		gchar *value;
+
+		/* Set GTK+ settings */
+		value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-theme-name", value);
+			g_free (value);
+		}
+
+		value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-icon-theme-name", value);
+			g_free (value);
+		}
+
+		value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-font-name", value);
+			g_free (value);
+		}
+
+		if (config_has_key (NULL, CONFIG_KEY_DPI))
+		{
+			gint dpi = 1024 * config_get_int (NULL, CONFIG_KEY_DPI, 96);
+			g_key_file_set_integer (keyfile, "Settings", "gtk-xft-dpi", dpi);
+		}
+
+		if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
+		{
+			gboolean antialias = config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE);
+			g_key_file_set_boolean (keyfile, "Settings", "gtk-xft-antialias", antialias);
+		}
+
+		value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-xft-hintstyle", value);
+			g_free (value);
+		}
+
+		value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
+		if (value)
+		{
+			g_key_file_set_string (keyfile, "Settings", "gtk-xft-rgba", value);
+			g_free (value);
+		}
+		g_key_file_save_to_file (keyfile, gtk_settings_ini, NULL);
+	} else {
+		g_error_free (error);
+	}
+
+	g_free (gtk_settings_dir);
+	g_free (gtk_settings_ini);
+	g_key_file_free (keyfile);
 }
 
 int
@@ -1838,17 +1962,18 @@ main (int argc, char **argv)
 {
 	GtkBuilder *builder;
 	const GList *items, *item;
-	gchar *value;
 	int ret = EXIT_SUCCESS;
-
-	/* Prevent memory from being swapped out, as we are dealing with passwords */
-	mlockall (MCL_CURRENT | MCL_FUTURE);
 
 	/* LP: #1024482 */
 	g_setenv ("GDK_CORE_DEVICE_EVENTS", "1", TRUE);
+	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
 
-	/* LP: #1366534 */
-	g_setenv ("NO_AT_BRIDGE", "1", TRUE);
+	/* Make nm-applet hide items the user does not have permissions to interact with */
+	g_setenv ("NM_APPLET_HIDE_POLICY_ITEMS", "1", TRUE);
+
+	dbus_update_activation_environment ();
+
+	g_unix_signal_add (SIGTERM, (GSourceFunc)sigterm_cb, /* is_callback */ GINT_TO_POINTER (TRUE));
 
 	/* Initialize i18n */
 	setlocale (LC_ALL, "");
@@ -1856,26 +1981,17 @@ main (int argc, char **argv)
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 
-	g_unix_signal_add (SIGTERM, (GSourceFunc)sigterm_cb, /* is_callback */ GINT_TO_POINTER (TRUE));
-
-	config_init ();
-
-	g_setenv ("GTK_MODULES", "atk-bridge", FALSE);
-
-	gchar **arr = NULL;
-	const gchar *cmd = "systemctl --user start at-spi-dbus-bus.service";
-
-	g_shell_parse_argv (cmd, NULL, &arr, NULL);
-
-	g_spawn_async (NULL, arr, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-
-	g_strfreev (arr);
-
 	/* init gtk */
 	gtk_init (&argc, &argv);
 
+	config_init ();
+	apply_gtk_config ();
+
 	/* Starting window manager */
 	wm_start ();
+
+	/* Starting gnome-flashback */
+	gf_start ();
 
 	greeter = lightdm_greeter_new ();
 	g_signal_connect (greeter, "show-prompt", G_CALLBACK (show_prompt_cb), NULL);
@@ -1900,57 +2016,6 @@ main (int argc, char **argv)
 		XForceScreenSaver (display, ScreenSaverActive);
 		XSetScreenSaver (display, config_get_int (NULL, CONFIG_KEY_SCREENSAVER_TIMEOUT, 60), 0,
                          ScreenSaverActive, DefaultExposures);
-	}
-
-	/* Set GTK+ settings */
-	value = config_get_string (NULL, CONFIG_KEY_THEME, NULL);
-	if (value)
-	{
-		g_debug ("[Configuration] Changing GTK+ theme to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-theme-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-theme-name", &default_theme_name, NULL);
-	g_debug ("[Configuration] GTK+ theme: '%s'", default_theme_name);
-
-	value = config_get_string (NULL, CONFIG_KEY_ICON_THEME, NULL);
-	if (value)
-	{
-		g_debug ("[Configuration] Changing icons theme to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-icon-theme-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-icon-theme-name", &default_icon_theme_name, NULL);
-	g_debug ("[Configuration] Icons theme: '%s'", default_icon_theme_name);
-
-	value = config_get_string (NULL, CONFIG_KEY_FONT, "Sans 10");
-	if (value)
-	{
-		g_debug ("[Configuration] Changing font to '%s'", value);
-		g_object_set (gtk_settings_get_default (), "gtk-font-name", value, NULL);
-		g_free (value);
-	}
-	g_object_get (gtk_settings_get_default (), "gtk-font-name", &default_font_name, NULL);
-	g_debug ("[Configuration] Font: '%s'", default_font_name);
-
-	if (config_has_key (NULL, CONFIG_KEY_DPI))
-		g_object_set (gtk_settings_get_default (), "gtk-xft-dpi", 1024*config_get_int (NULL, CONFIG_KEY_DPI, 96), NULL);
-
-	if (config_has_key (NULL, CONFIG_KEY_ANTIALIAS))
-		g_object_set (gtk_settings_get_default (), "gtk-xft-antialias", config_get_bool (NULL, CONFIG_KEY_ANTIALIAS, FALSE), NULL);
-
-	value = config_get_string (NULL, CONFIG_KEY_HINT_STYLE, NULL);
-	if (value)
-	{
-		g_object_set (gtk_settings_get_default (), "gtk-xft-hintstyle", value, NULL);
-		g_free (value);
-	}
-
-	value = config_get_string (NULL, CONFIG_KEY_RGBA, NULL);
-	if (value)
-	{
-		g_object_set (gtk_settings_get_default (), "gtk-xft-rgba", value, NULL);
-		g_free (value);
 	}
 
 	builder = gtk_builder_new_from_resource ("/kr/gooroom/greeter/gooroom-greeter.ui");
@@ -2046,10 +2111,6 @@ main (int argc, char **argv)
 	/* Background */
 	greeter_background = greeter_background_new (GTK_WIDGET (screen_overlay));
 
-	value = config_get_string (NULL, CONFIG_KEY_ACTIVE_MONITOR, NULL);
-	greeter_background_set_active_monitor_config (greeter_background, value ? value : "#cursor");
-	g_free (value);
-
 	read_monitor_configuration (CONFIG_GROUP_DEFAULT, GREETER_BACKGROUND_DEFAULT);
 
 	gchar **config_group;
@@ -2115,11 +2176,6 @@ main (int argc, char **argv)
 	network_indicator_application_start ();
 	other_indicator_application_start ();
 	notify_service_start ();
-
-	/* There is no window manager, so we need to implement some of its functionality */
-	GdkWindow* root_window = gdk_get_default_root_window ();
-	gdk_window_set_events (root_window, gdk_window_get_events (root_window) | GDK_SUBSTRUCTURE_MASK);
-	gdk_window_add_filter (root_window, wm_window_filter, NULL);
 
 	changing_password = FALSE;
 

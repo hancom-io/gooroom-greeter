@@ -19,6 +19,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <string.h>
 #include <X11/Xatom.h>
+#include <glib/gi18n.h>
 
 #include "greeterbackground.h"
 
@@ -46,10 +47,11 @@ typedef enum
     SCALING_MODE_SOURCE,
     /* Default mode for values without mode prefix */
     SCALING_MODE_ZOOMED,
+    SCALING_MODE_SCALED,
     SCALING_MODE_STRETCHED
 } ScalingMode;
 
-static const gchar* SCALING_MODE_PREFIXES[] = {"#source:", "#zoomed:", "#stretched:", NULL};
+static const gchar* SCALING_MODE_PREFIXES[] = {"#source:", "#zoomed:", "#scaled:", "#stretched:", NULL};
 
 typedef gdouble (*TransitionFunction)(gdouble x);
 typedef void (*TransitionDraw)(gconstpointer monitor, cairo_t* cr);
@@ -139,13 +141,13 @@ static const Monitor INVALID_MONITOR_STRUCT = {0};
 
 struct _GreeterBackground
 {
-	GObject parent_instance;
-	struct _GreeterBackgroundPrivate* priv;
+    GObject parent_instance;
+    struct _GreeterBackgroundPrivate* priv;
 };
 
 struct _GreeterBackgroundClass
 {
-	GObjectClass parent_class;
+    GObjectClass parent_class;
 };
 
 typedef struct _GreeterBackgroundPrivate GreeterBackgroundPrivate;
@@ -166,11 +168,11 @@ struct _GreeterBackgroundPrivate
     /* Default config for unlisted monitors */
     MonitorConfig* default_config;
 
-	/* Array of configured monitors for current screen */
+    /* Array of configured monitors for current screen */
     Monitor* monitors;
     gsize monitors_size;
 
-	/* Name => <Monitor*>, "Number" => <Monitor*> */
+    /* Name => <Monitor*>, "Number" => <Monitor*> */
     GHashTable* monitors_map;
 
     GList* active_monitors_config;
@@ -339,7 +341,7 @@ static const MonitorConfig DEFAULT_MONITOR_CONFIG =
 static void
 greeter_background_class_init(GreeterBackgroundClass* klass)
 {
-	GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
+    GObjectClass* gobject_class = G_OBJECT_CLASS(klass);
 
     background_signals[BACKGROUND_SIGNAL_ACTIVE_MONITOR_CHANGED] =
                             g_signal_new("active-monitor-changed",
@@ -386,7 +388,8 @@ greeter_background_new(GtkWidget* child)
     GreeterBackground* background = GREETER_BACKGROUND(g_object_new(greeter_background_get_type(), NULL));
     background->priv->child = child;
     g_signal_connect(background->priv->child, "destroy", G_CALLBACK(greeter_background_child_destroyed_cb), background);
-	return background;
+
+    return background;
 }
 
 void
@@ -628,7 +631,7 @@ greeter_background_connect(GreeterBackground* background,
             monitor_set_background(monitor, background);
             background_unref(&background);
         }
-		else
+        else
             monitor_set_background(monitor, monitor->background_configured);
 
         if(monitor->name)
@@ -1022,20 +1025,44 @@ greeter_background_save_xroot(GreeterBackground* background)
     cairo_t* cr = cairo_create(surface);
     gsize i;
 
-    const GdkRGBA ROOT_COLOR = {1.0, 1.0, 1.0, 1.0};
+    const GdkRGBA ROOT_COLOR = {0.16, 0.16, 0.16, 1.0};
     gdk_cairo_set_source_rgba(cr, &ROOT_COLOR);
     cairo_paint(cr);
 
     for(i = 0; i < priv->monitors_size; ++i)
     {
-        const Monitor* monitor = &priv->monitors[i];
-        if(!monitor->background)
-            continue;
-        cairo_save(cr);
-        cairo_translate(cr, monitor->geometry.x, monitor->geometry.y);
-        monitor_draw_background(monitor, monitor->background, cr);
-        cairo_restore(cr);
+		gint w = 120;
+		gint image_logo_w, image_logo_h, letter_logo_w, letter_logo_h;
+		GdkPixbuf *image_logo, *letter_logo;
+		const Monitor* monitor = &priv->monitors[i];
+
+		if (monitor->geometry.width > 1920)
+		{
+			w = (monitor->geometry.width*120)/1920;
+		}
+
+		image_logo = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/image-logo.svg", w, -1, TRUE, NULL);
+		letter_logo = gdk_pixbuf_new_from_resource_at_scale ("/kr/gooroom/greeter/letter-logo.png", w, -1, TRUE, NULL);
+		image_logo_w = gdk_pixbuf_get_width (image_logo);
+		image_logo_h = gdk_pixbuf_get_height (image_logo);
+		letter_logo_w = gdk_pixbuf_get_width (letter_logo);
+		letter_logo_h = gdk_pixbuf_get_height (letter_logo);
+
+		cairo_save(cr);
+
+		cairo_translate(cr, monitor->geometry.x, monitor->geometry.y);
+		gdk_cairo_set_source_pixbuf(cr, image_logo, (monitor->geometry.width - image_logo_w)/2, monitor->geometry.height/2 - image_logo_h);
+		cairo_paint(cr);
+
+		gdk_cairo_set_source_pixbuf(cr, letter_logo, (monitor->geometry.width - letter_logo_w)/2, monitor->geometry.height - letter_logo_h*5);
+		cairo_paint(cr);
+
+		cairo_restore(cr);
+
+		g_object_unref (image_logo);
+		g_object_unref (letter_logo);
     }
+
     set_surface_as_root(priv->screen, surface);
 
     cairo_destroy(cr);
@@ -1521,6 +1548,37 @@ scale_image(GdkPixbuf* source,
                                            width, height);
         gdk_pixbuf_composite(source, pixbuf, 0, 0, width, height,
                              offset_x, offset_y, scale_x, scale_y, GDK_INTERP_BILINEAR, 0xFF);
+        return pixbuf;
+    }
+    else if(mode == SCALING_MODE_SCALED)
+    {
+        gdouble factor;
+        gint p_width, p_height;
+        gint new_width, new_height;
+        gint offset_x, offset_y;
+
+        p_width = gdk_pixbuf_get_width (source);
+        p_height = gdk_pixbuf_get_height (source);
+
+        factor = MIN (width/(gdouble)p_width, height/(gdouble)p_height);
+
+        offset_x = (width - (p_width * factor)) / 2;
+        offset_y = (height - (p_height * factor)) / 2;
+
+        new_width  = floor (p_width * factor + 0.5);
+        new_height = floor (p_height * factor + 0.5);
+
+        GdkPixbuf *new = gdk_pixbuf_scale_simple(source, new_width, new_height, GDK_INTERP_BILINEAR);
+
+        GdkPixbuf *pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE,
+                                           gdk_pixbuf_get_bits_per_sample (source),
+                                           width, height);
+
+        gdk_pixbuf_composite(new, pixbuf, offset_x, offset_y, new_width, new_height,
+                             offset_x, offset_y, 1.0, 1.0, GDK_INTERP_NEAREST, 0xFF);
+
+        g_object_unref (new);
+
         return pixbuf;
     }
     else if(mode == SCALING_MODE_STRETCHED)
