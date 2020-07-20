@@ -2127,6 +2127,9 @@ main (int argc, char **argv)
 
 	greeter_background_connect (greeter_background, gdk_screen_get_default ());
 
+	/* set default session */
+	set_session (lightdm_greeter_get_default_session_hint (greeter));
+
 	const gchar *user_name;
 	gboolean logged_in = FALSE;
 
