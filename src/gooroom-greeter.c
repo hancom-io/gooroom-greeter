@@ -2103,7 +2103,7 @@ main (int argc, char **argv)
 	gtk_overlay_add_overlay (screen_overlay, msg_win);
 	gtk_overlay_add_overlay (screen_overlay, panel_box);
 
-	clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%F      %p %I:%M");
+	clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%x   %X");
 
 	GtkCssProvider *provider = gtk_css_provider_new ();
 	gtk_css_provider_load_from_resource (provider, "/kr/gooroom/greeter/theme.css");
