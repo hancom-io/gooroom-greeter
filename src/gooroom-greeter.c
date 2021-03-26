@@ -98,9 +98,6 @@ static GtkWidget    *last_show_win;
 static gboolean      changing_password;
 
 
-/* Clock */
-static gchar *clock_format;
-
 /* Session */
 static gchar *current_session;
 
@@ -189,26 +186,59 @@ gboolean pw_set_win_key_press_event_cb         (GtkWidget *widget, GdkEventKey *
 static void process_prompts (LightDMGreeter *greeter);
 static void start_authentication (const gchar *username);
 
+
+
+/*
+ * Translate @str according to the locale defined by LC_TIME; unlike
+ * dcgettext(), the translation is still taken from the LC_MESSAGES
+ * catalogue and not the LC_TIME one.
+ */
+static const gchar *
+translate_time_format_string (const char *str)
+{
+	const char *locale = g_getenv ("LC_TIME");
+	const char *res;
+	char *sep;
+	locale_t old_loc;
+	locale_t loc = (locale_t)0;
+
+	if (locale)
+		loc = newlocale (LC_MESSAGES_MASK, locale, (locale_t)0);
+
+	old_loc = uselocale (loc);
+
+	sep = strchr (str, '\004');
+	res = g_dpgettext (GETTEXT_PACKAGE, str, sep ? sep - str + 1 : 0);
+
+	uselocale (old_loc);
+
+	if (loc != (locale_t)0)
+		freelocale (loc);
+
+	return res;
+}
+
+
 /* Clock */
 static gboolean
 clock_timeout_thread (gpointer data)
 {
-    GtkLabel *clock_label = GTK_LABEL (data);
+	GtkLabel *clock_label = GTK_LABEL (data);
 
-    GDateTime *dt = NULL;
+	GDateTime *dt = NULL;
 
-    dt = g_date_time_new_now_local ();
-    if (dt) {
-        gchar *fm = g_date_time_format (dt, clock_format);
-        gchar *markup = g_markup_printf_escaped ("<b><span foreground=\"white\">%s</span></b>", fm);
-        gtk_label_set_markup (GTK_LABEL (clock_label), markup);
-        g_free (fm);
-        g_free (markup);
+	dt = g_date_time_new_now_local ();
+	if (dt) {
+		gchar *fm = g_date_time_format (dt, translate_time_format_string (N_("%B %-d %Y  %l:%M %p")));
+		gchar *markup = g_markup_printf_escaped ("<b><span foreground=\"white\">%s</span></b>", fm);
+		gtk_label_set_markup (GTK_LABEL (clock_label), markup);
+		g_free (fm);
+		g_free (markup);
 
-        g_date_time_unref (dt);
-    }
+		g_date_time_unref (dt);
+	}
 
-    return TRUE;
+	return TRUE;
 }
 
 static void
@@ -2102,8 +2132,6 @@ main (int argc, char **argv)
 	gtk_overlay_add_overlay (screen_overlay, ask_win);
 	gtk_overlay_add_overlay (screen_overlay, msg_win);
 	gtk_overlay_add_overlay (screen_overlay, panel_box);
-
-	clock_format = config_get_string (NULL, CONFIG_KEY_CLOCK_FORMAT, "%x   %X");
 
 	GtkCssProvider *provider = gtk_css_provider_new ();
 	gtk_css_provider_load_from_resource (provider, "/kr/gooroom/greeter/theme.css");
