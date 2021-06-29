@@ -1,23 +1,28 @@
 /*  
  *  Copyright (c) 2012-2013 Andrzej <ndrwrdck@gmail.com>
- *  Copyright (C) 2015-2019 Gooroom <gooroom@gooroom.kr>
+ *  Copyright (C) 2015 - 2021 Gooroom <gooroom@gooroom.kr>
  *
- *  This program is free software; you can redistribute it and/or modify
+ *  Hancom Inc. opted to apply the terms of GPL-3+ License for "indicator-button.c"
+ *
+ *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Library General Public License for more details.
+ *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <glib.h>
 #include <gtk/gtk.h>
@@ -143,12 +148,15 @@ xfce_indicator_button_toggled (GtkToggleButton *widget)
 static void
 xfce_indicator_button_init (XfceIndicatorButton *button)
 {
-	gtk_widget_set_name (GTK_WIDGET (button), "indicator_button");
+	GtkStyleContext *style;
+	style = gtk_widget_get_style_context (GTK_WIDGET (button));
+	gtk_style_context_add_class (style, "indicator-button");
 
 	gtk_widget_set_can_focus(GTK_WIDGET(button), FALSE);
 	gtk_widget_set_can_default (GTK_WIDGET (button), FALSE);
 	gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
 	gtk_widget_set_focus_on_click (GTK_WIDGET (button), FALSE);
+//	gtk_widget_set_name (GTK_WIDGET (button), "indicator-button");
 
 	button->io = NULL;
 	button->entry = NULL;

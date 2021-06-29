@@ -2,6 +2,7 @@
  * Copyright (C) 2014 - 2015, Sean Davis <smd.seandavis@gmail.com>
  * Copyright (C) 2014, Andrew P. <pan.pav.7c5@gmail.com>
  * Copyright (C) 2015, Simon Steinbeiß <ochosi@shimmerproject.org>
+ * Copyright (C) 2015 - 2021 Gooroom <gooroom@gooroom.kr>
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -14,7 +15,7 @@
 #ifndef GREETER_BACKGROUND_H
 #define GREETER_BACKGROUND_H
 
-#include <glib-object.h>
+#include <glib.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -25,20 +26,6 @@ G_BEGIN_DECLS
 #define GREETER_IS_BACKGROUND(obj)          (G_TYPE_CHECK_INSTANCE_TYPE((obj), GREETER_BACKGROUND_TYPE))
 #define GREETER_IS_BACKGROUND_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE((klass), GREETER_BACKGROUND_TYPE))
 
-#define GREETER_BACKGROUND_DEFAULT          "*"
-
-typedef enum
-{
-    TRANSITION_TYPE_NONE,
-    TRANSITION_TYPE_EASE_IN_OUT,
-    TRANSITION_TYPE_LINEAR,
-    TRANSITION_TYPE_FALLBACK
-} TransitionType;
-
-typedef enum
-{
-    TRANSITION_EFFECT_NONE,
-} TransitionEffect;
 
 typedef struct _GreeterBackground           GreeterBackground;
 typedef struct _GreeterBackgroundClass      GreeterBackgroundClass;
@@ -46,26 +33,21 @@ typedef struct _GreeterBackgroundClass      GreeterBackgroundClass;
 GType greeter_background_get_type(void) G_GNUC_CONST;
 
 GreeterBackground* greeter_background_new           (GtkWidget* child);
-void greeter_background_set_active_monitor_config   (GreeterBackground* background,
-                                                     const gchar* value);
+
 void greeter_background_set_monitor_config          (GreeterBackground* background,
-                                                     const gchar* name,
-                                                     const gchar* bg,
-                                                     gint user_bg,
-                                                     gint laptop,
-                                                     gint transition_duration,
-                                                     TransitionType transition_type);
-void greeter_background_remove_monitor_config       (GreeterBackground* background,
-                                                     const gchar* name);
-gchar** greeter_background_get_configured_monitors  (GreeterBackground* background);
+                                                     const gchar*       bg);
 void greeter_background_connect                     (GreeterBackground* background,
                                                      GdkScreen* screen);
-void greeter_background_set_custom_background       (GreeterBackground* background,
-                                                     const gchar* path);
-void greeter_background_save_xroot                  (GreeterBackground* background);
-const GdkRectangle* greeter_background_get_active_monitor_geometry(GreeterBackground* background);
+//void greeter_background_save_xroot                  (GreeterBackground* background);
 void greeter_background_add_accel_group             (GreeterBackground* background,
-                                                     GtkAccelGroup* group);
+                                                     GtkAccelGroup*     group);
+GdkPixbuf *greeter_background_pixbuf_get            (GreeterBackground* background);
+
+const GdkRectangle* greeter_background_get_active_monitor_geometry (GreeterBackground* background);
+
+void  greeter_background_set_active_monitor_from_geometry (GreeterBackground  *background,
+                                                           const GdkRectangle *geometry);
+
 
 G_END_DECLS
 

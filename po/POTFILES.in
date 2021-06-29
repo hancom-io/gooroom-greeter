@@ -1,3 +1,9 @@
 src/gooroom-greeter.c
+src/greeter-window.c
 src/greeterbackground.c
+src/greeter-password-settings-dialog.c
 [type: gettext/glade]src/gooroom-greeter.ui
+[type: gettext/glade]src/greeter-window.ui
+[type: gettext/glade]src/splash-window.ui
+[type: gettext/glade]src/greeter-message-dialog.ui
+[type: gettext/glade]src/greeter-password-settings-dialog.ui

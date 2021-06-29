@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48px" height="48px" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>progress/loading48</title>
+    <g id="progress/loading48" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M43.6,24 C43.6,34.8247811 34.8247811,43.6 24,43.6 C13.1752189,43.6 4.4,34.8247811 4.4,24 C4.4,13.1752189 13.1752189,4.4 24,4.4 C29.4128974,4.4 34.3133082,6.59421561 37.8602893,10.1417035 L35.5965512,12.4034488 C32.6287349,9.43563253 28.5287349,7.6 24,7.6 C14.9425301,7.6 7.6,14.9425301 7.6,24 C7.6,33.0574699 14.9425301,40.4 24,40.4 C32.889739,40.4 40.1274663,33.3268974 40.3924817,24.5013927 L40.4,24 L43.6,24 Z" id="Path" fill="#ffffff" fill-rule="nonzero"></path>
+    </g>
+</svg>

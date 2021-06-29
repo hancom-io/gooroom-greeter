@@ -13,7 +13,7 @@ Build-Depends: debhelper (>= 9),
                libglib2.0-dev,
                libupower-glib-dev,
                libayatana-ido3-dev,
-               libayatana-indicator3-dev,
+               libayatana-indicator3-dev
 Standards-Version: 3.9.8
 
 Package: gooroom-greeter

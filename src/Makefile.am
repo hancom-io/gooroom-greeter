@@ -6,13 +6,21 @@ BUILT_SOURCES = \
 
 gooroom_greeter_SOURCES = \
 	$(BUILT_SOURCES) \
-	indicator-button.h	\
-	indicator-button.c	\
+	indicator-button.h \
+	indicator-button.c \
 	gooroom-greeter.c \
+	greeterconfiguration.c \
+	greeterconfiguration.h \
 	greeterbackground.c \
 	greeterbackground.h \
-	greeterconfiguration.c \
-	greeterconfiguration.h
+	greeter-window.h \
+	greeter-window.c \
+	splash-window.h \
+	splash-window.c \
+	greeter-password-settings-dialog.h \
+	greeter-password-settings-dialog.c \
+	greeter-message-dialog.h \
+	greeter-message-dialog.c
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
@@ -20,7 +28,7 @@ AM_CPPFLAGS = \
 	-DLOCALEDIR=\"$(localedir)\" \
 	-DPKGDATA_DIR=\"$(pkgdatadir)\" \
 	-DCONFIG_FILE=\"$(sysconfdir)/lightdm/gooroom-greeter.conf\" \
-	-DINDICATOR_DIR=\"$(INDICATORDIR)\"	\
+	-DINDICATOR_DIR=\"$(INDICATORDIR)\" \
 	-DGOOROOM_SPLASH=\"$(libdir)/gooroom-splash/gooroom-splash\" \
 	-DGOOROOM_NOTIFYD=\"$(libdir)/gooroom-notifyd/gooroom-notifyd\" \
 	$(WARN_CFLAGS)
