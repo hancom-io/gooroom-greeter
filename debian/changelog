@@ -1,3 +1,10 @@
+gooroom-greeter (0.3.0+grm3u1) unstable; urgency=medium
+
+  [ cjheo ]
+  * [7398cd92] Initial release for Gooroom-3.0
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Sun, 05 Dec 2021 16:21:21 +0900
+
 gooroom-greeter (0.2.6+grm2u1) unstable; urgency=medium
 
   [ cjheo ]
