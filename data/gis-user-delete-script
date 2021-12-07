@@ -1,0 +1,7 @@
+#!/bin/sh
+
+is_gis_exists() { grep -c '^gis:' /etc/passwd; }
+
+if is_gis_exists; then
+	/usr/sbin/userdel -rf gis
+fi

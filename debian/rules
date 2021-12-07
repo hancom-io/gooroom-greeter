@@ -5,7 +5,10 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 override_dh_auto_configure:
 	./autogen.sh
-	dh_auto_configure -- --disable-silent-rules --enable-kill-on-sigterm
+	dh_auto_configure -- \
+		--disable-silent-rules \
+		--enable-kill-on-sigterm \
+		--libexecdir=$$\{prefix}/lib/gooroom-greeter
 
 %:
 	dh $@ --parallel --with autotools-dev
