@@ -1,3 +1,11 @@
+gooroom-greeter (0.3.0+grm3u2) unstable; urgency=medium
+
+  [ cjheo ]
+  * [f69a3405] 재부팅 시 greeter가 실행안되는 문제가 있어 gis 사용자 삭제 스크립트를 추가하고
+               99_gooroom-greeter.conf의 greeter-setup-script에서 호출하도록 수정
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Wed, 08 Dec 2021 18:48:20 +0900
+
 gooroom-greeter (0.3.0+grm3u1) unstable; urgency=medium
 
   [ cjheo ]
