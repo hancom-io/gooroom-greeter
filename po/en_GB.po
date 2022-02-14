@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-29 16:27+0900\n"
+"POT-Creation-Date: 2022-02-14 15:14+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -491,8 +491,8 @@ msgid "Restart"
 msgstr "System Restart"
 
 #: ../src/greeter-window.ui.h:1
-msgid "Login Gooroom"
-msgstr "Login Gooroom"
+msgid "Login Hancom Gooroom"
+msgstr "Login Hancom Gooroom"
 
 #: ../src/greeter-window.ui.h:2
 msgid "Enter your username"

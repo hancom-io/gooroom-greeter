@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <template class="GreeterWindow" parent="GtkBox">
     <property name="visible">True</property>
-    <property name="can_focus">False</property>
+    <property name="can-focus">False</property>
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="halign">center</property>
         <property name="valign">end</property>
         <property name="orientation">vertical</property>
@@ -17,7 +17,7 @@
         <child>
           <object class="GtkImage" id="logo_image">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="resource">/kr/gooroom/greeter/logo.svg</property>
           </object>
           <packing>
@@ -29,8 +29,8 @@
         <child>
           <object class="GtkLabel">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="label" translatable="yes">Login Gooroom</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Login Hancom Gooroom</property>
             <style>
               <class name="title-label"/>
             </style>
@@ -44,21 +44,21 @@
         <child>
           <object class="GtkBox">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_top">10</property>
+            <property name="can-focus">False</property>
+            <property name="margin-top">10</property>
             <property name="orientation">vertical</property>
             <property name="spacing">10</property>
             <child>
               <object class="GtkEntry" id="id_entry">
-                <property name="height_request">38</property>
+                <property name="height-request">38</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="max_length">256</property>
-                <property name="invisible_char">●</property>
-                <property name="width_chars">32</property>
-                <property name="primary_icon_activatable">False</property>
-                <property name="secondary_icon_activatable">False</property>
-                <property name="placeholder_text" translatable="yes">Enter your username</property>
+                <property name="can-focus">True</property>
+                <property name="max-length">256</property>
+                <property name="invisible-char">●</property>
+                <property name="width-chars">32</property>
+                <property name="primary-icon-activatable">False</property>
+                <property name="secondary-icon-activatable">False</property>
+                <property name="placeholder-text" translatable="yes">Enter your username</property>
                 <style>
                   <class name="id-entry"/>
                 </style>
@@ -72,18 +72,18 @@
             <child>
               <object class="GtkOverlay">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <child>
                   <object class="GtkEntry" id="pw_entry">
-                    <property name="height_request">38</property>
+                    <property name="height-request">38</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="max_length">256</property>
+                    <property name="can-focus">True</property>
+                    <property name="max-length">256</property>
                     <property name="visibility">False</property>
-                    <property name="invisible_char">●</property>
-                    <property name="width_chars">32</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="placeholder_text" translatable="yes">Enter your password</property>
+                    <property name="invisible-char">●</property>
+                    <property name="width-chars">32</property>
+                    <property name="primary-icon-activatable">False</property>
+                    <property name="placeholder-text" translatable="yes">Enter your password</property>
                     <style>
                       <class name="pw-entry"/>
                     </style>
@@ -95,22 +95,22 @@
                 <child type="overlay">
                   <object class="GtkAlignment">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="top_padding">2</property>
-                    <property name="bottom_padding">2</property>
-                    <property name="left_padding">2</property>
-                    <property name="right_padding">2</property>
+                    <property name="can-focus">False</property>
+                    <property name="top-padding">2</property>
+                    <property name="bottom-padding">2</property>
+                    <property name="left-padding">2</property>
+                    <property name="right-padding">2</property>
                     <child>
                       <object class="GtkButton" id="login_button">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
                         <property name="halign">end</property>
                         <property name="valign">center</property>
                         <child>
                           <object class="GtkImage">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
+                            <property name="can-focus">False</property>
                             <property name="resource">/kr/gooroom/greeter/arrow.svg</property>
                           </object>
                         </child>
@@ -121,7 +121,7 @@
                     </child>
                   </object>
                   <packing>
-                    <property name="pass_through">True</property>
+                    <property name="pass-through">True</property>
                   </packing>
                 </child>
               </object>
@@ -148,25 +148,25 @@
     <child>
       <object class="GtkBox" id="panel_box">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="spacing">24</property>
         <child>
           <object class="GtkButton" id="btn_shutdown">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">Shutdown system</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="tooltip-text" translatable="yes">Shutdown system</property>
             <property name="relief">none</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="spacing">10</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">system-shutdown-symbolic</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">system-shutdown-symbolic</property>
                     <property name="icon_size">3</property>
                   </object>
                   <packing>
@@ -178,9 +178,9 @@
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Shutdown</property>
-                    <property name="use_markup">True</property>
+                    <property name="use-markup">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -203,20 +203,20 @@
         <child>
           <object class="GtkButton" id="btn_hibernate">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">Hibernate system</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="tooltip-text" translatable="yes">Hibernate system</property>
             <property name="relief">none</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="spacing">10</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">system-hibernate-symbolic</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">system-hibernate-symbolic</property>
                     <property name="icon_size">3</property>
                   </object>
                   <packing>
@@ -228,9 +228,9 @@
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Hibernate</property>
-                    <property name="use_markup">True</property>
+                    <property name="use-markup">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -253,20 +253,20 @@
         <child>
           <object class="GtkButton" id="btn_suspend">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">Suspend system</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="tooltip-text" translatable="yes">Suspend system</property>
             <property name="relief">none</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="spacing">10</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">system-suspend-symbolic</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">system-suspend-symbolic</property>
                     <property name="icon_size">3</property>
                   </object>
                   <packing>
@@ -278,7 +278,7 @@
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Suspend</property>
                   </object>
                   <packing>
@@ -302,20 +302,20 @@
         <child>
           <object class="GtkButton" id="btn_restart">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">False</property>
-            <property name="tooltip_text" translatable="yes">Restart system</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="tooltip-text" translatable="yes">Restart system</property>
             <property name="relief">none</property>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="spacing">10</property>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="icon_name">system-restart-symbolic</property>
+                    <property name="can-focus">False</property>
+                    <property name="icon-name">system-restart-symbolic</property>
                     <property name="icon_size">3</property>
                   </object>
                   <packing>
@@ -327,9 +327,9 @@
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Restart</property>
-                    <property name="use_markup">True</property>
+                    <property name="use-markup">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -352,7 +352,7 @@
         <child>
           <object class="GtkBox" id="indicator_box">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="spacing">16</property>
             <child>
               <placeholder/>
@@ -361,7 +361,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="pack_type">end</property>
+            <property name="pack-type">end</property>
             <property name="position">4</property>
           </packing>
         </child>
@@ -372,16 +372,16 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="pack_type">end</property>
+        <property name="pack-type">end</property>
         <property name="position">1</property>
       </packing>
     </child>
     <child>
       <object class="GtkSpinner" id="spinner">
-        <property name="width_request">64</property>
-        <property name="height_request">64</property>
+        <property name="width-request">64</property>
+        <property name="height-request">64</property>
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <property name="halign">center</property>
         <property name="valign">center</property>
       </object>
