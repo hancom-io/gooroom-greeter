@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gooroom-greeter\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-14 15:14+0900\n"
+"POT-Creation-Date: 2022-03-07 14:37+0900\n"
 "PO-Revision-Date: 2019-09-04 17:37-0400\n"
 "Last-Translator: Gooroom <gooroom@gooroom.kr>\n"
 "Language-Team: Gooroom <gooroom@gooroom.kr>\n"
@@ -499,3 +499,12 @@ msgstr "사용자 입력"
 #: ../src/greeter-window.ui.h:3
 msgid "Enter your password"
 msgstr "비밀번호 입력"
+
+#: ../src/greeter-password-settings-dialog.ui.h:1
+msgid "Change Password"
+msgstr "비밀번호 변경"
+
+# 주의, Linux-PAM / libpwquality의 "New %s%spassword: " 의 번역과 동일
+#: ../src/greeter-password-settings-dialog.ui.h:2
+msgid "New Password"
+msgstr "새  암호:"
