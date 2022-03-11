@@ -1,3 +1,17 @@
+gooroom-greeter (0.3.1+grm3u1+han3u1) unstable; urgency=medium
+
+  [ boyeon.choi ]
+  * [97eba7a6] Hancom Gooroom 3.0 Initialization
+  * [bc029854] Changed background
+
+  [ subin.kim ]
+  * [a50099fb] [Bug:5019]Updated password settings dialog message
+
+  [ donghun ]
+  * [6cfeef1b] [Bug: 5035] Modify ko.po due to text error in password settings dialog
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 11 Mar 2022 20:35:42 +0900
+
 gooroom-greeter (0.3.1+grm3u1) unstable; urgency=medium
 
   [ cjheo ]
