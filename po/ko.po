@@ -356,7 +356,7 @@ msgstr "현재 비밀번호 입력 :"
 # 주의, Linux-PAM / libpwquality의 "New %s%spassword: " 의 번역과 동일
 #: ../src/greeter-window.c:936
 msgid "New password: "
-msgstr "새  암호:"
+msgstr "새 암호:"
 
 #: ../src/greeter-window.c:938
 msgid "Changing Password - [Step 2]"
@@ -369,7 +369,7 @@ msgstr "새 비밀번호 입력 :"
 # 주의, Linux-PAM / libpwquality의 "Retype new %s%spassword: " 의 번역과 동일
 #: ../src/greeter-window.c:941
 msgid "Retype new password: "
-msgstr "새  암호 재입력:"
+msgstr "새 암호 재입력:"
 
 #: ../src/greeter-window.c:943
 msgid "Changing Password - [Step 3]"
